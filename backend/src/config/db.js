@@ -1,7 +1,19 @@
-const { neon } = require('@neondatabase/serverless');
+
 require('dotenv').config();
+const { Pool } = require('@neondatabase/serverless');
+const { PrismaNeon } = require('@prisma/adapter-neon');
+const { PrismaClient } = require('@prisma/client');
 
-// Inicializa a ligação usando a stringr de ligação guardada no .env
-const sql = neon(process.env.DATABASE_URL);
+const url = process.env.DATABASE_URL;
 
-module.exports = sql;
+if (!url) {
+  console.error(" DATABASE_URL está vazia!");
+} else {
+  console.log(" DATABASE_URL carregada com sucesso.");
+}
+
+const pool = new Pool({ connectionString: url });
+const adapter = new PrismaNeon(pool);
+const db = new PrismaClient({ adapter });
+
+module.exports = { db };
