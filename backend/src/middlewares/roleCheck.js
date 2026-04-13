@@ -10,4 +10,6 @@ const checkCoordenadora = (req, res, next) => {
   next();
 };
 
+
+
 module.exports = { checkCoordenadora };

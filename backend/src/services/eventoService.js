@@ -1,4 +1,4 @@
- const { db } = require("../config/db");
+const { db } = require("../config/db");
 
 const criarEvento = async (dados, id_coordenadora) => {
   const { nome, descricao, data_de_realizacao } = dados;
@@ -9,7 +9,6 @@ const criarEvento = async (dados, id_coordenadora) => {
   }
 
   // Verificamos que a coordenadora existe na tabela coordenadora
-  // (dupla segurança além do middleware)
   const coordenadora = await db.coordenadora.findUnique({
     where: { id_utilizador: id_coordenadora },
   });
@@ -54,7 +53,7 @@ const listarEventos = async () => {
         include: {
           coordenadora: {
             include: {
-              // Só queremos nome e apelido, não a password!
+             
               utilizador: {
                 select: {
                   nome: true,
@@ -233,14 +232,14 @@ const listarParticipantes = async (id_evento) => {
   });
 
   // Juntar tudo numa lista com o tipo identificado
-  // assim o frontend sabe o que é cada um
+  
   const alunos = alunosEvento.map((ea) => ({
     id_utilizador: ea.aluno.id_utilizador,
     nome: ea.aluno.utilizador.nome,
     apelido: ea.aluno.utilizador.apelido,
     email: ea.aluno.utilizador.email,
     tipo: "Aluno",
-    coaching: ea.aluno.coaching, // informação extra útil para grupos
+    coaching: ea.aluno.coaching, 
   }));
 
   const docentes = docentesEvento.map((ed) => ({

@@ -1,7 +1,7 @@
 // src/middlewares/auth.js
 const jwt = require("jsonwebtoken");
 const autenticar = (req, res, next) => {
-  // Nota: já não é async — não vai à BD!
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -14,7 +14,7 @@ const autenticar = (req, res, next) => {
     // Apenas verifica o token — o role já está lá dentro
     const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Guardamos só o que está no token
+    
     req.user = {
       id_utilizador: payload.id_utilizador,
       role: payload.role,
