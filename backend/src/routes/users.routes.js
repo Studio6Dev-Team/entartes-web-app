@@ -29,27 +29,22 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
     try {
-        const { username, password, id_tipo } = req.body
-
-        if (!username || !password || !id_tipo) {
-            return res.status(400).json({ error: 'Missing required fields' })
-        }
-
+        const { username, password, id_tipo, nome, apelido } = req.body
         const hashedPassword = await bcrypt.hash(password, 10)
 
         const newUser = await prisma.utilizador.create({
             data: {
                 codigo_username: username,
-                pass: hashedPassword,
+                password: hashedPassword, // Campo correto
                 id_tipo: id_tipo,
+                nome,
+                apelido,
                 estado: 'ATIVO'
-            },
-            select: { id_utilizador: true, codigo_username: true, estado: true, tipo_utilizador: true }
+            }
         })
-
         res.status(201).json(newUser)
     } catch (error) {
-        res.status(500).json({ error: 'Failed to create user. Username might exist.' })
+        res.status(500).json({ error: 'Check if username or email already exists' })
     }
 })
 

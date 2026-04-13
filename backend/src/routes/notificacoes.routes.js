@@ -11,7 +11,7 @@ router.use(authenticate)
  */
 router.get('/', async (req, res) => {
     try {
-        const list = await prisma.notificacoes.findMany({
+        const list = await prisma.notificacao.findMany({ // Singular
             where: { id_user: req.user.id },
             orderBy: { data_envio: 'desc' }
         })

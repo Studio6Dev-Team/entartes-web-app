@@ -1,23 +1,33 @@
-// Importa a instância de ligação ao NeonDB
-const sql = require('../config/db');
+const prisma = require("backend/src/config/db.js");
 
-const getAllUsers = async () => {
-  // Executa uma query real na base de dados
-  // (Certifique-se de que a tabela 'users' já existe no NeonDB)
-  const result = await sql`SELECT * FROM utilizador`;
-  return result;
-};
+async function findByUsername(username){
+    return prisma.user.findUnique({
+        where: { Username_Code: username }
+    });
+}
 
-const getUserById = async (id) => {
-  // Busca um utilizador específico pelo seu ID
-  const result = await sql`SELECT * FROM utilizador WHERE id = ${id}`;
-  return result[0];
-};
+async function findById(id){
+    return prisma.user.findUnique({
+        where: { User_Id: id},
+        select: {User_Id: true, Username_Code: true, ID_Type: true}
+    });
+}
 
-const createUser = async (nome, email) => {
-  // Executa o comando de inserção e retorna o utilizador recém-criado
-  const result = await sql`INSERT INTO utilizador (nome, email) VALUES (${nome}, ${email}) RETURNING *`;
-  return result[0];
-};
+async function create(username, passwordHash, idType){
+    return prisma.user.create({
+        data: {
+            Username_Code: username,
+            password_hash: passwordHash,
+            Id_Type: idType
+        }
+    });
+}
 
-module.exports = { getAllUsers, getUserById, createUser };
+async function stateUpdate(id, active){
+    return prisma.user.update({
+        where: { User_Id: id },
+        data: { active: active}
+    });
+}
+
+module.exports = {findByUsername, findById, create, stateUpdate};

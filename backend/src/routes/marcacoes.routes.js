@@ -14,16 +14,20 @@ router.use(authenticate)
 router.get('/', async (req, res) => {
     try {
         let where = {}
-
         if (req.user.role === 'aluno') {
-            where = { aluno_marcacoes: { some: { id_aluno: req.user.id } } }
+            where = { aluno_marcacao: { some: { id_aluno: req.user.id } } }
         } else if (req.user.role === 'docente') {
             where = { id_docente: req.user.id }
         }
 
-        const marcacoes = await prisma.marcacoes.findMany({
+        const marcacoes = await prisma.marcacao.findMany({
             where,
-            include: { estado_marcacoes: true, docente: true, sala: true, modalidade: true }
+            include: {
+                estado_marcacao: true, // Singular conforme o schema
+                docente: true,
+                sala: true,
+                modalidade: true
+            }
         })
         res.json(marcacoes)
     } catch (error) {
@@ -96,15 +100,17 @@ router.get('/:id', async (req, res) => {
         const id = parseInt(req.params.id)
         if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' })
 
-        const m = await prisma.marcacoes.findUnique({
+        // Corrigido: marcacao (singular)
+        const m = await prisma.marcacao.findUnique({
             where: { id_marcacoes: id },
             include: {
-                estado_marcacoes: true,
+                estado_marcacao: true,
                 sala: true,
                 docente: true,
                 modalidade: true,
-                aluno_marcacoes: { include: { aluno: true } },
-                marcacoes_estado_historico: true
+                // Corrigido: aluno_marcacao e marcacao_estado_historico (conforme o schema)
+                aluno_marcacao: { include: { aluno: true } },
+                marcacao_estado_historico: true
             }
         })
 
