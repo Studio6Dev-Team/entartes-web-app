@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
         const marcacoes = await prisma.marcacao.findMany({
             where,
             include: {
-                estado_marcacao: true, // Singular conforme o schema
+                estado_marcacao: true,
                 docente: true,
                 sala: true,
                 modalidade: true
@@ -43,12 +43,7 @@ router.post('/', isAluno, async (req, res) => {
     try {
         const { id_docente, id_modalidade, data_a_realizar, hora_inicio, duracao_minutos, numero_alunos_pretendidos } = req.body
 
-        const duracaoValida = [30, 45, 60, 75, 90, 120]
-        if (!duracaoValida.includes(duracao_minutos)) {
-            return res.status(400).json({ error: 'Invalid duration. Allowed: 30, 45, 60, 75, 90, 120' })
-        }
-
-        const conflito = await prisma.marcacoes.findFirst({
+        const conflito = await prisma.marcacao.findFirst({
             where: {
                 id_docente,
                 data_a_realizar: new Date(data_a_realizar),
@@ -57,11 +52,9 @@ router.post('/', isAluno, async (req, res) => {
             }
         })
 
-        if (conflito) {
-            return res.status(409).json({ error: 'Conflict with existing booking for this teacher' })
-        }
+        if (conflito) return res.status(409).json({ error: 'Conflict with existing booking' })
 
-        const novaMarcacao = await prisma.marcacoes.create({
+        const novaMarcacao = await prisma.marcacao.create({
             data: {
                 id_docente,
                 id_modalidade,
@@ -74,15 +67,12 @@ router.post('/', isAluno, async (req, res) => {
             }
         })
 
-        await prisma.marcacoes_estado_historico.create({
+        await prisma.marcacao_estado_historico.create({
             data: { id_marcacoes: novaMarcacao.id_marcacoes, id_estado: 1 }
         })
 
-        await prisma.aluno_marcacoes.create({
-            data: {
-                id_aluno: req.user.id,
-                id_marcacoes: novaMarcacao.id_marcacoes
-            }
+        await prisma.aluno_marcacao.create({
+            data: { id_aluno: req.user.id, id_marcacoes: novaMarcacao.id_marcacoes }
         })
 
         res.status(201).json(novaMarcacao)
@@ -129,30 +119,25 @@ router.patch('/:id/validar', isAdmin, async (req, res) => {
     try {
         const { id_sala } = req.body
         const id = parseInt(req.params.id)
-        if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' })
+        const current = await prisma.marcacao.findUnique({ where: { id_marcacoes: id } })
 
-        const marcacao = await prisma.marcacoes.findUnique({ where: { id_marcacoes: id } })
-        if (!marcacao) return res.status(404).json({ error: 'Booking not found' })
-
-        const roomConflict = await prisma.marcacoes.findFirst({
+        const roomConflict = await prisma.marcacao.findFirst({
             where: {
                 id_sala,
                 id_estado: 2,
-                data_a_realizar: marcacao.data_a_realizar,
-                hora_inicio: marcacao.hora_inicio
+                data_a_realizar: current.data_a_realizar,
+                hora_inicio: current.hora_inicio
             }
         })
 
-        if (roomConflict) {
-            return res.status(409).json({ error: 'Room already booked at this time' })
-        }
+        if (roomConflict) return res.status(409).json({ error: 'Room already booked' })
 
-        const updated = await prisma.marcacoes.update({
+        const updated = await prisma.marcacao.update({
             where: { id_marcacoes: id },
             data: { id_sala, id_estado: 2 }
         })
 
-        await prisma.marcacoes_estado_historico.create({
+        await prisma.marcacao_estado_historico.create({
             data: { id_marcacoes: id, id_estado: 2 }
         })
 

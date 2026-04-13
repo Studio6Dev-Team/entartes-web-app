@@ -28,13 +28,13 @@ router.get('/', async (req, res) => {
 router.patch('/:id/lida', async (req, res) => {
     try {
         const id = parseInt(req.params.id)
-        const note = await prisma.notificacoes.findUnique({ where: { id_notificacao: id } })
+        const note = await prisma.notificacao.findUnique({ where: { id_notificacao: id } })
 
         if (!note || note.id_user !== req.user.id) {
             return res.status(403).json({ error: 'Unauthorized' })
         }
 
-        const updated = await prisma.notificacoes.update({
+        const updated = await prisma.notificacao.update({
             where: { id_notificacao: id },
             data: { lida: true }
         })

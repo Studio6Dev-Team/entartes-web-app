@@ -17,21 +17,15 @@ router.use(authenticate)
 router.get('/', async (req, res) => {
     try {
         const { docenteId, data } = req.query
-
-        // Build dynamic where clause based on provided query parameters
         let whereClause = {}
-        if (docenteId) whereClause.ID_Docente = parseInt(docenteId)
-        if (data) whereClause.Data_Semana = new Date(data) // Adjust to your Prisma schema date field
+        if (docenteId) whereClause.id_docente = parseInt(docenteId)
+        if (data) whereClause.data_especifica = new Date(data)
 
         const disponibilidades = await prisma.disponibilidade.findMany({
             where: whereClause,
-            include: {
-                Docente: { select: { Nome: true } },
-                // Assuming there is a relation to Modalidade as per mockup Fig 15
-            },
-            orderBy: [{ Data_Semana: 'asc' }, { Hora_Inicio: 'asc' }]
+            include: { docente: { include: { utilizador: { select: { nome: true } } } } },
+            orderBy: [{ data_especifica: 'asc' }, { hora_inicio: 'asc' }]
         })
-
         res.json(disponibilidades)
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' })
@@ -45,54 +39,20 @@ router.get('/', async (req, res) => {
  */
 router.post('/', isDocente, async (req, res) => {
     try {
-        const { data, hora_inicio, hora_fim, modalidades } = req.body
+        const { data, hora_inicio, hora_fim } = req.body
+        const docente = await prisma.docente.findUnique({ where: { id_utilizador: req.user.id } })
 
-        if (!data || !hora_inicio || !hora_fim) {
-            return res.status(400).json({ error: 'Date, start time, and end time are required' })
-        }
-
-        // Identify the specific Docente record linked to the authenticated User
-        const docente = await prisma.docente.findFirst({
-            where: { ID_User: req.user.id }
-        })
-
-        if (!docente) {
-            return res.status(403).json({ error: 'Authenticated user is not registered as a Teacher' })
-        }
-
-        const targetDate = new Date(data)
-
-        // Overlap validation logic: Check if any existing slot overlaps with the new timeframe
-        const overlappingSlot = await prisma.disponibilidade.findFirst({
-            where: {
-                ID_Docente: docente.ID_Docente,
-                Data_Semana: targetDate,
-                OR: [
-                    {
-                        Hora_Inicio: { lte: hora_fim },
-                        Hora_Fim: { gte: hora_inicio }
-                    }
-                ]
-            }
-        })
-
-        if (overlappingSlot) {
-            return res.status(409).json({ error: 'Time slot overlaps with an existing availability' })
-        }
-
-        const novaDisponibilidade = await prisma.disponibilidade.create({
+        const nova = await prisma.disponibilidade.create({
             data: {
-                ID_Docente: docente.ID_Docente,
-                Data_Semana: targetDate,
-                Hora_Inicio: hora_inicio,
-                Hora_Fim: hora_fim,
-                // Depending on your schema, linking 'modalidades' might require a separate associative table insert here
+                id_docente: docente.id_utilizador,
+                data_especifica: new Date(data),
+                hora_inicio: new Date(hora_inicio),
+                hora_fim: new Date(hora_fim)
             }
         })
-
-        res.status(201).json(novaDisponibilidade)
+        res.status(201).json(nova)
     } catch (error) {
-        res.status(500).json({ error: 'Failed to create availability slot' })
+        res.status(500).json({ error: 'Failed to create slot' })
     }
 })
 

@@ -6,15 +6,11 @@ import { stringify } from 'csv-stringify/sync'
 
 const router = Router()
 
-// Secures all reporting routes to Administration/Coordination only (RF-SEC-01)
 router.use(authenticate, isAdmin)
 
 /**
  * GET /api/relatorios/sessoes
- * Retrieves a detailed list of concluded sessions (State 4) within a specific date range.
- * Supports operational reporting and audit trails.
- * @query {string} from - Start date (YYYY-MM-DD)
- * @query {string} to - End date (YYYY-MM-DD)
+ * Retrieves concluded sessions (id_estado: 4) within a date range.
  */
 router.get('/sessoes', async (req, res) => {
     try {
@@ -23,14 +19,14 @@ router.get('/sessoes', async (req, res) => {
 
         const sessoes = await prisma.marcacao.findMany({
             where: {
-                ID_Estado: 4, // 4 = Concluída
-                Data_a_realizar: { gte: new Date(from), lte: new Date(to) }
+                id_estado: 4,
+                data_a_realizar: { gte: new Date(from), lte: new Date(to) }
             },
             include: {
-                Docente: true,
-                Modalidade: true,
-                Sala: true,
-                ALUNO_MARCACAO: { include: { Aluno: true } }
+                docente: true,
+                modalidade: true,
+                sala: true,
+                aluno_marcacao: { include: { aluno: true } }
             }
         })
         res.json(sessoes)
@@ -41,15 +37,14 @@ router.get('/sessoes', async (req, res) => {
 
 /**
  * GET /api/relatorios/horas-docente
- * Aggregates coaching hours per teacher for payroll and management evaluation.
- * Aligns with RF-COA-09 (Automated Accounting).
+ * Aggregates coaching hours per teacher.
  */
 router.get('/horas-docente', async (req, res) => {
     try {
         const data = await prisma.marcacao.groupBy({
-            by: ['ID_Docente'],
-            where: { ID_Estado: 4 }, // Only counts fully validated/concluded sessions
-            _sum: { Duracao_Minutos: true },
+            by: ['id_docente'],
+            where: { id_estado: 4 },
+            _sum: { duracao_minutos: true },
             _count: true
         })
         res.json(data)
@@ -60,31 +55,28 @@ router.get('/horas-docente', async (req, res) => {
 
 /**
  * GET /api/relatorios/alunos
- * Consolidates total coaching minutes and session counts per student.
- * Critical for monthly billing generation (RF-COA-09).
+ * Consolidates total coaching minutes per student.
  */
 router.get('/alunos', async (req, res) => {
     try {
-        // Fetches all concluded participations
-        const marcacoesAlunos = await prisma.aLUNO_MARCACAO.findMany({
-            where: { Marcacao: { ID_Estado: 4 } },
+        const marcacoesAlunos = await prisma.aluno_marcacao.findMany({
+            where: { marcacao: { id_estado: 4 } },
             include: {
-                Aluno: true,
-                Marcacao: true
+                aluno: true,
+                marcacao: true
             }
         })
 
-        // Aggregates data by student ID to provide clean totals to the frontend
         const totaisPorAluno = marcacoesAlunos.reduce((acc, registo) => {
-            const id = registo.ID_Aluno
+            const id = registo.id_aluno
             if (!acc[id]) {
                 acc[id] = {
-                    aluno: registo.Aluno,
+                    aluno: registo.aluno,
                     totalMinutos: 0,
                     totalSessoes: 0
                 }
             }
-            acc[id].totalMinutos += registo.Marcacao.Duracao_Minutos
+            acc[id].totalMinutos += registo.marcacao.duracao_minutos || 0
             acc[id].totalSessoes += 1
             return acc
         }, {})
@@ -97,10 +89,7 @@ router.get('/alunos', async (req, res) => {
 
 /**
  * GET /api/relatorios/exportar
- * Generates a dynamic CSV file containing concluded sessions within a timeframe.
- * Aligns with RF-COA-08 (Invoicing Integration).
- * @query {string} from - Start date (YYYY-MM-DD)
- * @query {string} to - End date (YYYY-MM-DD)
+ * Generates CSV for concluded sessions.
  */
 router.get('/exportar', async (req, res) => {
     try {
@@ -109,24 +98,22 @@ router.get('/exportar', async (req, res) => {
 
         const sessoes = await prisma.marcacao.findMany({
             where: {
-                ID_Estado: 4, // 4 = Concluída
-                Data_a_realizar: { gte: new Date(from), lte: new Date(to) }
+                id_estado: 4,
+                data_a_realizar: { gte: new Date(from), lte: new Date(to) }
             },
-            include: { Docente: true, Modalidade: true, Sala: true }
+            include: { docente: true, modalidade: true, sala: true }
         })
 
-        // Maps complex relations into a flat structure suitable for CSV
         const rows = sessoes.map(s => ({
-            id: s.ID_Marcacao,
-            data: s.Data_a_realizar.toISOString().split('T')[0], // Extracts YYYY-MM-DD
-            hora: s.Hora_Inicio,
-            duracao_min: s.Duracao_Minutos,
-            docente: s.Docente?.Nome || 'N/A',
-            modalidade: s.Modalidade?.Nome || 'N/A',
-            sala: s.Sala?.Nome || 'N/A'
+            id: s.id_marcacoes,
+            data: s.data_a_realizar?.toISOString().split('T')[0] || 'N/A',
+            hora: s.hora_inicio,
+            duracao_min: s.duracao_minutos,
+            docente: s.docente?.id_utilizador || 'N/A',
+            modalidade: s.modalidade?.nome || 'N/A',
+            sala: s.sala?.nome || 'N/A'
         }))
 
-        // Sets headers to trigger a file download in the browser
         res.setHeader('Content-Type', 'text/csv')
         res.setHeader('Content-Disposition', 'attachment; filename="sessoes.csv"')
         res.send(stringify(rows, { header: true }))

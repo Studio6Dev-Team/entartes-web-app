@@ -15,14 +15,7 @@ router.use(authenticate)
 router.get('/', async (req, res) => {
     try {
         const eventos = await prisma.evento.findMany({
-            select: {
-                ID_Evento: true,
-                Nome: true,
-                Data_de_realizacao: true,
-                Descricao: true
-                // Assuming there might be a ticketing link field based on RF-EVT-01
-            },
-            orderBy: { Data_de_realizacao: 'asc' }
+            orderBy: { data_de_realizacao: 'asc' }
         })
         res.json(eventos)
     } catch (error) {
@@ -64,19 +57,15 @@ router.post('/', isAdmin, async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id)
-        if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' })
-
         const evento = await prisma.evento.findUnique({
-            where: { ID_Evento: id },
+            where: { id_evento: id },
             include: {
-                Grupo: true,
-                Anuncio: true,
-                Evento_Aluno: { include: { Aluno: { include: { User: { select: { Codigo_UserName: true } } } } } }
+                grupo: true,
+                anuncio: true,
+                evento_aluno: { include: { aluno: true } }
             }
         })
-
-        if (!evento) return res.status(404).json({ error: 'Event not found' })
-
+        if (!evento) return res.status(404).json({ error: 'Not found' })
         res.json(evento)
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' })

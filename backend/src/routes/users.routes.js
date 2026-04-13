@@ -109,7 +109,7 @@ router.get('/:id/export', async (req, res) => {
         const userData = await prisma.utilizador.findUnique({
             where: { id_utilizador: id },
             include: {
-                aluno: { include: { aluno_marcacoes: true, evento_aluno: true } },
+                aluno: { include: { aluno_marcacao: true, evento_aluno: true } },
                 docente: { include: { marcacoes: true, disponibilidade: true } }
             }
         })
