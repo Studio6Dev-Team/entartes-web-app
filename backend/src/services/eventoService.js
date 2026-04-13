@@ -86,8 +86,22 @@ const buscarEventoPorId = async (id_evento) => {
           },
         },
       },
-      grupo: true,       // grupos associados ao evento
-      evento_aluno: true, // alunos inscritos
+      grupo:  {
+    include: {
+    aluno_grupo: { include: { aluno: { include: { utilizador: { select: { nome: true, apelido: true } } } } } },
+    docente_grupo: { include: { docente: { include: { utilizador: { select: { nome: true, apelido: true } } } } } },
+  },
+  orderBy: { hora_atuacao: "asc" },
+},
+    evento_aluno: {
+  include: {
+    aluno: {
+      include: {
+        utilizador: { select: { nome: true, apelido: true } },
+      },
+    },
+  },
+},
     },
   });
 
