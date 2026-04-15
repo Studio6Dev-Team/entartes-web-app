@@ -18,6 +18,10 @@ const login = async (codigo_username, password) => {
         throw new Error("Credenciais inválidas.");
     }
 
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET não está definido no servidor.');
+    }
+
     const token = jwt.sign(
         { id: user.id_utilizador, role: user.id_tipo },
         process.env.JWT_SECRET,
