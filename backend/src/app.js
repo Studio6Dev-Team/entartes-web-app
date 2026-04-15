@@ -12,8 +12,6 @@ import gruposRoutes from './routes/grupos.routes.js'
 import disponibilidadesRoutes from './routes/disponibilidades.routes.js'
 import relatoriosRoutes from './routes/relatorios.routes.js'
 
-import setupSwagger from './swagger.js'
-
 const app = express()
 
 app.use(express.json())

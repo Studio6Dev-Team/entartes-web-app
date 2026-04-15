@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { authenticate } from '../middleware/auth.middleware.js'
-import { isAdmin, isAluno } from '../middleware/roles.middleware.js'
+import { authenticate } from '../middlewares/auth.middleware.js'
+import { isAdmin, isAluno } from '../middlewares/roles.middleware.js'
 import * as marcacaoController from '../controllers/marcacao.controller.js'
 const router = Router()
 router.use(authenticate)
