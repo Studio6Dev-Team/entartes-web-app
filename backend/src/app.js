@@ -1,5 +1,7 @@
 import express from 'express'
 import morgan from 'morgan'
+import setupSwagger from './swagger.js'
+
 
 import authRoutes from './routes/auth.routes.js'
 import usersRoutes from './routes/users.routes.js'
@@ -27,6 +29,8 @@ app.use('/api/notificacoes', notificacoesRoutes)
 app.use('/api/grupos', gruposRoutes)
 app.use('/api/disponibilidades', disponibilidadesRoutes)
 app.use('/api/relatorios', relatoriosRoutes)
+
+setupSwagger(app)
 
 app.use((err, req, res, next) => {
     console.error(err.stack)
