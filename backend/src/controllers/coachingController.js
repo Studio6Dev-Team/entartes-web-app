@@ -6,6 +6,7 @@ const createNewCoaching = async (req, res) => {
     try {
         const {
             id_modalidade,
+            id_sala,
             data_a_realizar,
             hora_inicio,
             duracao_minutos
@@ -76,7 +77,7 @@ const getCoachingById = async (req, res) => {
     try {
         const { id } = req.params;
         const coaching = await prisma.marcacao.findUnique({
-            where: { id: parseInt(id) },
+            where: { id_marcacoes: parseInt(id) },
             include: {
                 estado_marcacao: true,
                 modalidade: true,
@@ -173,12 +174,12 @@ const getMyCoachings = async (req, res) => {
             include: {
                 modalidade: true,
                 estado_marcacao: true,
-                data_a_realizar: true,
-                hora_inicio: true,
                 utilizador: {
-                    nome: true,
-                    apelido: true,
-                    email: true
+                    select: {             
+                        nome: true,
+                        apelido: true,
+                        email: true
+                    }
                 }
             }
         });

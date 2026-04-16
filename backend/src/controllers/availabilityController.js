@@ -28,7 +28,7 @@ const createAvailabiliby = async (req, res) =>{
 
     try
     {
-        const newAvailability = await prisma.dispobilidade.create({
+        const newAvailability = await prisma.disponibilidade.create({
             data: {
                 id_docente: id_utilizador,
                 dia_semana: dia_semana ? parseInt(dia_semana) : null,
@@ -91,8 +91,8 @@ const updateAvailability = async(req, res) => {
         });
 
         res.status(201).json({
-            message: "Disponibilidade criada com sucesso!",
-            data: newAvailability
+            message: "Disponibilidade atualizada com sucesso!",
+            data: update    
         });
     }
     catch (error) {
@@ -109,7 +109,7 @@ const deleteAvailability = async(req, res) =>{
 
     try
     {
-        const existing = await prisma.dispobilidade.findUnique({
+        const existing = await prisma.disponibilidade.findUnique({
             where: {id_disponibilidade: parseInt(id_disponibilidade)},
             include: {marcacao: true}
         });

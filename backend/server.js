@@ -50,8 +50,17 @@ app.use('/api/event', eventRoutes);
 app.use('/api/coaching', coachingRoutes);
 app.use('/api/relatorio', relatorioRoutes);
 
-const PORT = process.env.PORT || 3000;
+if (require.main === module) {
+  // Só arranca o servidor se este ficheiro for executado diretamente
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Servidor a correr na porta ${PORT}`);
+  });
+}
+
+module.exports = app; // Exporta para os testes
+/*const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor a correr na porta ${PORT}`);
   console.log(`Documentação disponível em: http://localhost:${PORT}/api-docs`);
-});
+});*/

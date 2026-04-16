@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const authorize = require('../controllers/roleCheckMiddleware');
+const authorize = require('../middlewares/roleCheckMiddleware');        
 const tokenValidation = require('../middlewares/authMiddleware');
+const notificacaoController = require('../controllers/notificacaoController'); 
 
-
-router.use(authorize([1,2,3]), tokenValidation);
-router.get('/', authorize([1,2,3]), tokenValidation, notificacaoController.listNotificacoes);
-router.patch('/:id/lida', authorize([1,2,3]), tokenValidation, notificacaoController.markAsRead);
+router.get('/', tokenValidation, authorize([1, 2, 3]), notificacaoController.listNotificacoes);
+router.patch('/:id/lida', tokenValidation, authorize([1, 2, 3]), notificacaoController.markAsRead);
 
 module.exports = router;

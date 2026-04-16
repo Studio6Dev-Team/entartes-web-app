@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const authorize = require('../controllers/roleCheckMiddleware');
+const authorize = require('../middlewares/roleCheckMiddleware');   
 const tokenValidation = require('../middlewares/authMiddleware');
+const anuncioController = require('../controllers/anuncioController'); 
 
-
-router.use(tokenValidation, authorize[1]);
-router.post('/', authorize[1,2], tokenValidation, anuncioController.createAnuncio);
+router.post('/', tokenValidation, authorize([1, 2]), anuncioController.createAnuncio);
 
 module.exports = router;
