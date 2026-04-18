@@ -4,6 +4,15 @@ const prisma = new PrismaClient();
 
 const groupService = require("../services/groupService");
 
+const listarTodosOsGrupos = async (req, res) => {
+  try {
+    const grupos = await groupService.listarTodosOsGrupos();
+    res.status(200).json(grupos);
+  } catch (erro) {
+    res.status(500).json({ erro: erro.message });
+  }
+};
+
 const criarGrupo = async (req, res) => {
   try {
     const grupo = await groupService.criarGrupo(req.params.id_evento, req.body);
@@ -84,6 +93,7 @@ const eliminarGrupo = async (req, res) => {
 };
 
 module.exports = {
+  listarTodosOsGrupos,
   criarGrupo,
   listarGruposDoEvento,
   adicionarAlunoAoGrupo,
