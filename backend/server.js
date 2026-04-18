@@ -6,6 +6,7 @@ const app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
+
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -37,7 +38,9 @@ const authRoutes = require('./src/routes/authRoutes');
 const eventRoutes = require('./src/routes/eventRoutes');
 const coachingRoutes = require('./src/routes/coachingRoutes');
 const relatorioRoutes = require('./src/routes/relatorioRoutes');
-
+const horarioRoutes = require('./src/routes/horarioRoutes');
+const anuncioRoutes = require('./src/routes/anuncioRoutes');
+const grupos = 
 app.use(cors());
 app.use(express.json());
 
@@ -49,6 +52,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/event', eventRoutes);
 app.use('/api/coaching', coachingRoutes);
 app.use('/api/relatorio', relatorioRoutes);
+app.use('/api/horario', horarioRoutes);
+app.use('/api/anuncios', anuncioRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
