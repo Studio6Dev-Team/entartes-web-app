@@ -11,9 +11,13 @@ const criarEvento = async (req, res) => {
       if (isNaN(new Date(data_de_realizacao).getTime())) {
         return res.status(400).json({ error: "Data de realizacao tem formato inválido." });
       }
-      const today = new Date().toISOString().split('T')[0];
-      if (new Date(data_de_realizacao).toISOString().split('T')[0] < today) {
-        return res.status(400).json({ error: "Data de realizacao não pode ser no passado." });
+      
+      const eventDateISO = new Date(data_de_realizacao).toISOString();
+      const now = new Date();
+      const nowLocalFakeUTC = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString();
+      
+      if (eventDateISO < nowLocalFakeUTC) {
+        return res.status(400).json({ error: "Data e hora de realizacao não podem ser no passado." });
       }
     }
 
@@ -110,13 +114,17 @@ const editarEvento = async (req, res) => {
     }
 
     // CORREÇÃO: data_de_realizacao não era validada quanto ao formato
-    if (data_de_realizacao && isNaN(new Date(data_de_realizacao).getTime())) {
-      return res.status(400).json({ error: "data_de_realizacao tem formato inválido." });
-    }
     if (data_de_realizacao) {
-      const today = new Date().toISOString().split('T')[0];
-      if (new Date(data_de_realizacao).toISOString().split('T')[0] < today) {
-        return res.status(400).json({ error: "data de realizacao não pode ser no passado." });
+      if (isNaN(new Date(data_de_realizacao).getTime())) {
+        return res.status(400).json({ error: "data_de_realizacao tem formato inválido." });
+      }
+      
+      const eventDateISO = new Date(data_de_realizacao).toISOString();
+      const now = new Date();
+      const nowLocalFakeUTC = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString();
+      
+      if (eventDateISO < nowLocalFakeUTC) {
+        return res.status(400).json({ error: "Data e hora de realizacao não podem ser no passado." });
       }
     }
 
