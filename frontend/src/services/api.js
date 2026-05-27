@@ -1,4 +1,4 @@
-const BASE = '/api'
+const BASE = 'http://entartes-backend-yy9C.railway.internal:3000/api'
 
 async function request(path, options = {}) {
   const token = localStorage.getItem('token')
