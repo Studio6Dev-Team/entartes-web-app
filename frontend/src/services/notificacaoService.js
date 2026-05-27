@@ -18,12 +18,6 @@ export const notificacaoService = {
     },
 
     async markAsRead(id) {
-        return fetch(`/api/notificacoes/${id}/lida`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-        }).then(r => r.json())
+        return api.patch(`/notificacoes/${id}/lida`, {})
     }
 }

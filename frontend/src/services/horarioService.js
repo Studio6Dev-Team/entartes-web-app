@@ -71,18 +71,7 @@ export const horarioService = {
      * Inscrever aluno numa aula
      */
     async inscrever(id_marcacoes) {
-        return fetch(`/api/horario/inscrever`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ id_marcacoes })
-        }).then(async r => {
-            const data = await r.json()
-            if (!r.ok) throw new Error(data.message || `Erro ${r.status}`)
-            return data
-        })
+        return api.post('/horario/inscrever', { id_marcacoes })
     },
 
     ESTADOS: {
