@@ -1,6 +1,8 @@
+import { BASE } from './api'
+
 export const authService = {
   async login(codigo_username, password) {
-    const response = await fetch('/api/auth/login', {
+    const response = await fetch(`${BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ codigo_username, password }),
