@@ -5,7 +5,7 @@ import {
     CheckCircle2, X, Check, ExternalLink,
     Search, Upload, Eye, ChevronDown
 } from 'lucide-react'
-import { api } from '../services/api'
+import { api, BASE } from '../services/api'
 import { formatDate, formatTime } from '../utils/dateUtils'
 import { authService } from '../services/authService'
 
@@ -364,7 +364,7 @@ export function ExtratoModal({ onClose }) {
 
     async function handleExportCSV() {
         const token = localStorage.getItem('token')
-        const res = await fetch(`/api/relatorio/exportar?from=${from}&to=${to}`, {
+        const res = await fetch(`${BASE}/relatorio/exportar?from=${from}&to=${to}`, {
             headers: { Authorization: `Bearer ${token}` }
         })
         const blob = await res.blob()

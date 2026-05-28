@@ -151,11 +151,7 @@ export default function Aulas() {
     setDeletingDispId(id)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`/api/disponibilidades/${id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || `Erro ${res.status}`) }
+      await api.delete(`/disponibilidades/${id}`)
       showToast('Disponibilidade eliminada.', 'success')
       fetchDisponibilidades()
     } catch (err) {
