@@ -913,6 +913,8 @@ export default function Horario() {
                         onView={setViewMode}
                         date={currentDate}
                         onNavigate={date => setCurrentDate(date)}
+                        min={new Date(0, 0, 0, 8, 0, 0)}
+                        max={new Date(0, 0, 0, 23, 0, 0)}
                         onSelectEvent={handleSelectEvent}
                         eventPropGetter={event => {
                             const base = eventStyleGetter(event)
