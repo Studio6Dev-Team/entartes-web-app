@@ -172,7 +172,7 @@ function CustomToolbar({ label, onNavigate, onView, view }) {
     return (
         <div className="flex flex-wrap items-center justify-between gap-3 mb-5 px-8 pt-8">
             <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-[#324B4A] min-w-[200px]">{label}</h2>
+                <h2 className="text-2xl font-bold text-[#324B4A] w-[270px]">{label}</h2>
                 <div className="flex items-center gap-2 ml-2">
                     <button onClick={() => onNavigate('PREV')} className="w-9 h-9 rounded-full border border-[#4a6362]/25 flex items-center justify-center hover:bg-[#EFF5F4] transition-colors">
                         <ChevronLeft size={17} className="text-[#4A6362]" />
@@ -373,7 +373,7 @@ function FilterDropdown({ value, onChange, options, placeholder }) {
                 <>
                     {/* Backdrop to close when clicking outside */}
                     <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-                    
+
                     {/* Dropdown Menu */}
                     <div className="absolute left-0 mt-1.5 w-[200px] bg-white border border-[#4a6362]/15 rounded-[16px] shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                         {placeholder && (
@@ -791,6 +791,9 @@ export default function Horario() {
             border-left: 1px solid #D1D5D4 !important;
         }
         .rbc-header:first-child { border-left: none !important; }
+        
+        /* Ocultar a área de "dia inteiro" (all-day) na vista semanal para remover o espaço em branco */
+        .rbc-allday-cell { display: none !important; }
         
         .rbc-off-range-bg { background-color: #F9FAFB !important; }
         
