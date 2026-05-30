@@ -5,8 +5,8 @@ import { pt } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import {
     ChevronLeft, ChevronRight, Plus, X, RefreshCw,
-    Clock, MapPin, User,
-    Check, AlertCircle, ChevronDown
+    Clock, MapPin, User, CalendarDays,
+    Check, AlertCircle, Music, ChevronDown, Trash2, Pencil
 } from 'lucide-react'
 import { horarioService } from '../services/horarioService'
 import { eventService } from '../services/eventService'
@@ -71,40 +71,23 @@ function EventComponent({ event }) {
 
     const timeStr = event.hora || event.hora_inicio_str || event.hora_inicio || '—'
 
+    // Calcular fim se tiver duração
     let endTimeStr = ''
     if (event.duracao_minutos) {
         endTimeStr = addMinutesToTime(timeStr, event.duracao_minutos)
     }
 
-    const tooltip = [
-        endTimeStr ? `${timeStr} – ${endTimeStr}` : timeStr,
-        event.title,
-        event.sala && event.sala !== '—' && event.sala !== 'Por atribuir' ? `Sala: ${event.sala}` : '',
-        event.docente && event.docente !== '—' ? `Docente: ${event.docente}` : '',
-    ].filter(Boolean).join('\n')
-
     return (
         <div
-            title={tooltip}
             style={{
                 backgroundColor: color.bg,
                 color: color.text,
-                borderLeft: `3px solid ${color.border}`,
-                borderRight: `1px solid ${color.border}`,
-                borderTop: `1px solid ${color.border}`,
-                borderBottom: `1px solid ${color.border}`,
-                height: '100%',
-                minHeight: '1.5rem',
+                border: `1px solid ${color.border}`,
             }}
-            className="rbc-event-inner rounded-r px-1 py-0.5 text-[9px] font-medium overflow-hidden leading-tight shadow-sm"
+            className="rounded px-1.5 py-0.5 text-[11px] font-medium overflow-hidden truncate leading-tight shadow-sm"
         >
-            <div className="font-bold flex flex-wrap gap-x-1 leading-tight">
-                <span className="whitespace-nowrap">{timeStr}{endTimeStr ? ` – ${endTimeStr}` : ''}</span>
-                <span className="break-words">{event.title}</span>
-            </div>
-            {event.sala && event.sala !== '—' && event.sala !== 'Por atribuir' && (
-                <div className="opacity-70 truncate">{event.sala}</div>
-            )}
+            <span className="font-bold mr-1">{timeStr}</span>
+            <span className="opacity-90">{event.title}</span>
         </div>
     )
 }
@@ -189,7 +172,7 @@ function CustomToolbar({ label, onNavigate, onView, view }) {
     return (
         <div className="flex flex-wrap items-center justify-between gap-3 mb-5 px-8 pt-8">
             <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-[#324B4A] w-[270px]">{label}</h2>
+                <h2 className="text-2xl font-bold text-[#324B4A] min-w-[200px]">{label}</h2>
                 <div className="flex items-center gap-2 ml-2">
                     <button onClick={() => onNavigate('PREV')} className="w-9 h-9 rounded-full border border-[#4a6362]/25 flex items-center justify-center hover:bg-[#EFF5F4] transition-colors">
                         <ChevronLeft size={17} className="text-[#4A6362]" />
@@ -236,7 +219,6 @@ function InfoItem({ icon: Icon, label, value }) {
 function NovoCoachingModal({ onClose, onSuccess, selectedDate }) {
     const [loading, setLoading] = useState(false)
     const [erro, setErro] = useState('')
-    const [erroHora, setErroHora] = useState('')
     const [modalidades, setModalidades] = useState([])
     const [salas, setSalas] = useState([])
     const [form, setForm] = useState({
@@ -257,12 +239,6 @@ function NovoCoachingModal({ onClose, onSuccess, selectedDate }) {
 
     async function handleSubmit() {
         if (!form.data || !form.hora) { setErro('Data e hora são obrigatórias.'); return }
-        if (form.hora < '08:30' || form.hora > '21:30') {
-            setErroHora('A hora deve estar entre as 08:30 e as 21:30.')
-            setErro('Corrija a hora assinalada.')
-            return
-        }
-        setErroHora('')
         setLoading(true)
         setErro('')
         try {
@@ -310,24 +286,8 @@ function NovoCoachingModal({ onClose, onSuccess, selectedDate }) {
                         </div>
                         <div>
                             <label className="text-[11px] font-bold text-[#4A6362] uppercase tracking-wider mb-1.5 block">Hora</label>
-                            <input type="time" value={form.hora}
-                                onChange={e => {
-                                    const v = e.target.value
-                                    set('hora', v)
-                                    if (v && (v < '08:30' || v > '21:30')) {
-                                        setErroHora('Fora do horário permitido (08:30–21:30)')
-                                    } else {
-                                        setErroHora('')
-                                    }
-                                }}
-                                min="08:30" max="21:30"
-                                className={`w-full bg-white border rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-colors ${erroHora ? 'border-red-500 focus:border-red-500' : 'border-[#6F7978] focus:border-[#006A68]'}`} />
-                            {erroHora && (
-                                <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 whitespace-nowrap">
-                                    <span className="inline-block w-3 h-3 rounded-full bg-red-500 text-white text-[8px] flex items-center justify-center font-bold">!</span>
-                                    {erroHora}
-                                </p>
-                            )}
+                            <input type="time" value={form.hora} onChange={e => set('hora', e.target.value)}
+                                className="w-full bg-white border border-[#6F7978] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#006A68]" />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -392,57 +352,18 @@ function Toast({ msg, type, onClose }) {
 
 // ─── Filter Dropdown ──────────────────────────────────────────────────────────
 function FilterDropdown({ value, onChange, options, placeholder }) {
-    const [isOpen, setIsOpen] = useState(false)
-
-    // Find current label
-    const currentOption = options.find(o => String(o.id !== undefined ? o.id : o) === String(value))
-    const currentLabel = currentOption ? (currentOption.nome || currentOption) : (placeholder || 'Geral (Tudo)')
-
     return (
-        <div className="relative inline-block text-left select-none z-20">
-            <button
-                type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between gap-2.5 pl-4 pr-3 py-2 bg-white border border-[#4a6362]/25 rounded-[12px] text-xs font-semibold text-[#324B4A] hover:bg-[#EFF5F4] transition-all cursor-pointer focus:outline-none focus:border-[#006A68] min-w-[150px]"
-            >
-                <span className="truncate">{currentLabel}</span>
-                <ChevronDown size={14} className={`text-[#4A6362] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isOpen && (
-                <>
-                    {/* Backdrop to close when clicking outside */}
-                    <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-
-                    {/* Dropdown Menu */}
-                    <div className="absolute left-0 mt-1.5 w-[200px] bg-white border border-[#4a6362]/15 rounded-[16px] shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                        {placeholder && (
-                            <button
-                                type="button"
-                                onClick={() => { onChange(''); setIsOpen(false); }}
-                                className={`w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-[#EFF5F4] transition-colors ${value === '' ? 'text-[#006A68] font-bold bg-[#EFF5F4]/60' : 'text-[#324B4A]'}`}
-                            >
-                                {placeholder}
-                            </button>
-                        )}
-                        {options.map(o => {
-                            const optionId = o.id !== undefined ? o.id : o;
-                            const optionLabel = o.nome || o;
-                            const isSelected = String(optionId) === String(value);
-                            return (
-                                <button
-                                    key={optionId}
-                                    type="button"
-                                    onClick={() => { onChange(optionId); setIsOpen(false); }}
-                                    className={`w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-[#EFF5F4] transition-colors ${isSelected ? 'text-[#006A68] font-bold bg-[#EFF5F4]/60' : 'text-[#324B4A]'}`}
-                                >
-                                    {optionLabel}
-                                </button>
-                            )
-                        })}
-                    </div>
-                </>
-            )}
+        <div className="relative">
+            <select value={value} onChange={e => onChange(e.target.value)}
+                className="appearance-none pl-3 pr-7 py-1.5 rounded-lg border border-[#4a6362]/25 text-xs font-medium text-[#324B4A] bg-white focus:outline-none focus:border-[#006A68] cursor-pointer">
+                <option value="">{placeholder}</option>
+                {options.map(o => (
+                    <option key={o.id || o} value={o.id !== undefined ? o.id : o}>
+                        {o.nome || o}
+                    </option>
+                ))}
+            </select>
+            <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#4A6362] pointer-events-none" />
         </div>
     )
 }
@@ -563,18 +484,8 @@ export default function Horario() {
         const aulasToUse = aulas
 
         const mappedAulas = aulasToUse.map(a => {
-            const dur = a.duracao_minutos || (typeof a.duracao === 'number' ? a.duracao : parseInt(a.duracao, 10)) || 60
-            // data_a_realizar = @db.Date (só data, midnight UTC)
-            // hora_inicio     = @db.Time (época 1970 + hora real)
-            // Combinar os dois para obter o datetime correcto
-            const dateBase = parseDateTime(a.data_de_realizacao || a._data_raw)
-            const timeBase = a.hora_inicio ? parseDateTime(a.hora_inicio) : null
-            const start = dateBase
-                ? timeBase
-                    ? new Date(dateBase.getFullYear(), dateBase.getMonth(), dateBase.getDate(),
-                               timeBase.getHours(), timeBase.getMinutes(), timeBase.getSeconds())
-                    : dateBase
-                : null
+            const dur = a.duracao_minutos || 60
+            const start = parseDateTime(a.data_de_realizacao || a._data_raw)
             const end = start ? new Date(start.getTime() + dur * 60000) : null
             return {
                 ...a,
@@ -588,12 +499,7 @@ export default function Horario() {
                 duracao_minutos: dur,
                 duracao: `${dur} min`,
             }
-        }).filter(e => {
-            if (!e.start) return false
-            if (e.id_estado === 4 || e.id_estado === 5) return false
-            const h = e.start.getHours(), m = e.start.getMinutes()
-            return (h > 8 || (h === 8 && m >= 0)) && (h < 21 || (h === 21 && m <= 30))
-        })
+        }).filter(e => e.start && e.id_estado !== 4 && e.id_estado !== 5)
 
         const mappedEventos = eventos.map(e => {
             const dur = e.duracao_minutos || 60
@@ -620,12 +526,7 @@ export default function Horario() {
                 _data_raw: e.data_de_realizacao,
                 _inserido: e._inserido
             }
-        }).filter(e => {
-            if (!e.start) return false
-            if (e.id_evento_estado === 5) return false
-            const h = e.start.getHours(), m = e.start.getMinutes()
-            return (h > 8 || (h === 8 && m >= 0)) && (h < 21 || (h === 21 && m <= 30))
-        })
+        }).filter(e => e.start && e.id_evento_estado !== 5)
 
         let combined = [...mappedAulas, ...mappedEventos]
 
@@ -654,9 +555,6 @@ export default function Horario() {
                             const start = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), h || 0, m || 0);
                             const end = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), h2 || (h || 0) + 1, m2 || 0);
 
-                            // Não mostrar disponibilidades passadas
-                            if (start < today) return;
-
                             combined.push({
                                 ...d,
                                 title: `Livre (${hIni} - ${hFim})`,
@@ -678,9 +576,6 @@ export default function Horario() {
                             if (dateObj.getDay() === Number(d.dia_semana)) {
                                 const start = new Date(year, month, day, h || 0, m || 0);
                                 const end = new Date(year, month, day, h2 || (h || 0) + 1, m2 || 0);
-
-                                // Não mostrar disponibilidades passadas
-                                if (start < today) continue;
 
                                 combined.push({
                                     ...d,
@@ -846,23 +741,17 @@ export default function Horario() {
         .rbc-month-row { border-top: none !important; }
         .rbc-month-row + .rbc-month-row { border-top: 1px solid #E3E9E8 !important; }
 
-        .rbc-header {
-            padding: 8px 0 !important;
-            font-weight: 700 !important;
-            text-transform: uppercase;
-            font-size: 12px;
-            color: #4A6362;
+        .rbc-header { 
+            padding: 15px 0 !important; 
+            font-weight: 700 !important; 
+            text-transform: uppercase; 
+            font-size: 12px; 
+            color: #4A6362; 
             background: #F8FAFA;
             border-bottom: 1px solid #D1D5D4 !important;
             border-left: 1px solid #D1D5D4 !important;
         }
-        .rbc-time-header-content { border-left: none !important; }
-        .rbc-time-content { margin-top: 0 !important; }
-        .rbc-event { margin-top: 1px !important; }
         .rbc-header:first-child { border-left: none !important; }
-        
-        /* Ocultar a área de "dia inteiro" (all-day) na vista semanal para remover o espaço em branco */
-        .rbc-allday-cell { display: none !important; }
         
         .rbc-off-range-bg { background-color: #F9FAFB !important; }
         
@@ -892,22 +781,11 @@ export default function Horario() {
         .rbc-now .rbc-button-link { color: #1A73E8; }
         
         /* Estilo dos eventos dentro da célula */
-        .rbc-event {
-            margin: 1px 4px !important;
-            padding: 0 !important;
-            background: transparent !important;
-            border: none !important;
-        }
-        /* Ocultar label nativo do react-big-calendar (time grid) — o EventComponent já mostra o intervalo */
-        .rbc-event-label { display: none !important; }
-        .rbc-event-content { height: 100% !important; }
-        /* Hover: expande o evento por cima dos sobrepostos */
-        .rbc-event:hover { z-index: 50 !important; overflow: visible !important; }
-        .rbc-event:hover .rbc-event-content { overflow: visible !important; }
-        .rbc-event:hover .rbc-event-inner {
-            min-width: 140px;
-            overflow: visible !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        .rbc-event { 
+            margin: 1px 4px !important; 
+            padding: 0 !important; 
+            background: transparent !important; 
+            border: none !important; 
         }
 
         /* Popup de "Ver mais" */
@@ -927,32 +805,23 @@ export default function Horario() {
             color: #006A68 !important;
         }
 
-        .rbc-show-more {
-            display: inline-flex;
-            align-items: center;
-            color: #006A68 !important;
-            font-weight: 700;
-            font-size: 11px;
-            padding: 1px 6px !important;
-            border-radius: 10px;
-            margin: 1px 4px;
-            background: #EFF5F4;
-            border: 1px solid #80D5D2;
+        .rbc-show-more { 
+            color: #5F6368 !important; 
+            font-weight: 600; 
+            font-size: 12px; 
+            padding: 2px 8px !important;
+            border-radius: 4px;
+            margin-left: 4px;
         }
-        .rbc-show-more:hover { background: #CCE8E6 !important; }
+        .rbc-show-more:hover { background-color: #F1F3F4; }
     `;
 
-    const filterOptions = useMemo(() => {
-        const base = [
-            { id: '', nome: 'Geral (Tudo)' },
-            { id: 'aulas', nome: 'Aulas' },
-            { id: 'eventos', nome: 'Eventos' }
-        ]
-        if (role !== 1) {
-            base.push({ id: 'disponibilidades', nome: 'Disponibilidades' })
-        }
-        return base
-    }, [role])
+    const filterOptions = [
+        { id: '', nome: 'Geral (Tudo)' },
+        { id: 'aulas', nome: 'Aulas' },
+        { id: 'eventos', nome: 'Eventos' },
+        { id: 'disponibilidades', nome: 'Disponibilidades' }
+    ]
 
     return (
         <>
@@ -1004,6 +873,7 @@ export default function Horario() {
                         value={filterType}
                         onChange={setFilterType}
                         options={filterOptions}
+                        placeholder="Tipo de Item"
                     />
 
                     {/* Filter: modalidade */}
@@ -1031,13 +901,7 @@ export default function Horario() {
                 )}
 
                 {/* Calendar */}
-                {loading ? (
-                    <div className="rounded-2xl border border-[#4a6362]/20 bg-white shadow-lg flex flex-col items-center justify-center gap-3" style={{ height: 850 }}>
-                        <RefreshCw size={28} className="text-[#006A68] animate-spin" />
-                        <p className="text-sm font-semibold text-[#4A6362]">A carregar horário…</p>
-                    </div>
-                ) : (
-                    <div className="rounded-2xl border border-[#4a6362]/20 overflow-hidden bg-white shadow-lg">
+                <div className="rounded-2xl border border-[#4a6362]/20 overflow-hidden bg-white shadow-lg">
                     <Calendar
                         className="!pt-2"
                         localizer={localizer}
@@ -1049,8 +913,6 @@ export default function Horario() {
                         onView={setViewMode}
                         date={currentDate}
                         onNavigate={date => setCurrentDate(date)}
-                        min={new Date(0, 0, 0, 8, 0, 0)}
-                        max={new Date(0, 0, 0, 22, 0, 0)}
                         onSelectEvent={handleSelectEvent}
                         eventPropGetter={event => {
                             const base = eventStyleGetter(event)
@@ -1117,10 +979,6 @@ export default function Horario() {
                             showMore: count => `+${count} mais`,
                         }}
                         culture="pt"
-                        formats={{
-                            dayFormat: (date, culture, localizer) =>
-                                localizer.format(date, 'EEE dd MMMM', culture),
-                        }}
                         popup={true}
                         selectable={false}
                         length={30}
@@ -1128,8 +986,27 @@ export default function Horario() {
                         dayLayoutAlgorithm="no-overlap"
                     />
                 </div>
-                )}
 
+                {/* Legend */}
+                {!loading && events.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        {[...new Set(events.filter(it => it.modalidade).map(it => it.modalidade))].slice(0, 5).map(m => {
+                            const c = getModalityColor(m)
+                            return (
+                                <div key={m} className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border font-medium"
+                                    style={{ backgroundColor: c.bg, borderColor: c.border, color: c.text }}>
+                                    <Music size={10} /> {m}
+                                </div>
+                            )
+                        })}
+                        {events.some(it => it._isEvent) && (
+                            <div className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border font-medium"
+                                style={{ backgroundColor: EVENT_COLOR.bg, borderColor: EVENT_COLOR.border, color: EVENT_COLOR.text }}>
+                                <CalendarDays size={10} /> Eventos
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Modals */}

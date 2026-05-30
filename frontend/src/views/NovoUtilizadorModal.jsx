@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { X, Check, AlertCircle, RefreshCw, Eye, EyeOff, Plus, UserMinus } from 'lucide-react'
 import { utilizadorService } from '../services/utilizadorService'
 import { modalidadeService } from '../services/modalidadeService'
@@ -41,7 +41,6 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
             : '',
         descricao: utilizador?.descricao ?? '',
         coaching: utilizador?.aluno?.coaching ?? false,
-        estado: utilizador?.estado ?? 'ATIVO',
     })
     const [errors, setErrors] = useState({})
     const [loading, setLoading] = useState(false)
@@ -54,28 +53,19 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
     const originalModalidadeIds = useRef([])
 
     useEffect(() => {
-        modalidadeService.listar(null, true, true)
+        modalidadeService.listar(null, true)
             .then(list => {
                 setAllModalidades(list.map(m => ({ id_modalidade: m.id_modalidade, nome: m.nome })))
-                if (isEdit) {
-                    if (utilizador.id_tipo === 2) {
-                        const current = list
-                            .filter(m => m.docente_modalidade?.some(d => d.id_docente === utilizador.id_utilizador))
-                            .map(m => ({ id_modalidade: m.id_modalidade, nome: m.nome }))
-                        setSelectedModalidades(current)
-                        originalModalidadeIds.current = current.map(m => m.id_modalidade)
-                    } else if (utilizador.id_tipo === 3) {
-                        const current = (utilizador.aluno?.aluno_modalidade || []).map(am => ({
-                            id_modalidade: am.id_modalidade,
-                            nome: am.modalidade?.nome || list.find(m => m.id_modalidade === am.id_modalidade)?.nome || ''
-                        }))
-                        setSelectedModalidades(current)
-                        originalModalidadeIds.current = current.map(m => m.id_modalidade)
-                    }
+                if (isEdit && utilizador.id_tipo === 2) {
+                    const current = list
+                        .filter(m => m.docente_modalidade?.some(d => d.id_docente === utilizador.id_utilizador))
+                        .map(m => ({ id_modalidade: m.id_modalidade, nome: m.nome }))
+                    setSelectedModalidades(current)
+                    originalModalidadeIds.current = current.map(m => m.id_modalidade)
                 }
             })
-            .catch(() => { })
-    }, [isEdit, utilizador])
+            .catch(() => {})
+    }, [])
 
     const availableModalidades = allModalidades.filter(
         m => !selectedModalidades.some(s => s.id_modalidade === m.id_modalidade)
@@ -130,16 +120,6 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
         ])
     }
 
-    async function syncAlunoModalidades(id_utilizador) {
-        const selectedIds = selectedModalidades.map(m => m.id_modalidade)
-        const toAdd = selectedIds.filter(id => !originalModalidadeIds.current.includes(id))
-        const toRemove = originalModalidadeIds.current.filter(id => !selectedIds.includes(id))
-        await Promise.all([
-            ...toAdd.map(id => modalidadeService.associarAluno(id, id_utilizador)),
-            ...toRemove.map(id => modalidadeService.desassociarAluno(id, id_utilizador)),
-        ])
-    }
-
     async function handleSubmit() {
         const e = validate()
         if (Object.keys(e).length > 0) { setErrors(e); return }
@@ -156,10 +136,7 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
                 ...(form.nif && { nif: form.nif.trim() }),
                 data_nascimento: form.data_nascimento,
                 ...(form.descricao.trim() && { descricao: form.descricao.trim() }),
-                ...(parseInt(form.id_tipo) === 3 && {
-                    coaching: form.coaching,
-                }),
-                estado: form.estado,
+                ...(parseInt(form.id_tipo) === 3 && { coaching: form.coaching }),
             }
             if (!isEdit) payload.password = form.password
             else if (form.password) payload.password = form.password
@@ -175,9 +152,6 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
 
             if (parseInt(form.id_tipo) === 2) {
                 await syncDocenteModalidades(userId)
-            }
-            if (parseInt(form.id_tipo) === 3) {
-                await syncAlunoModalidades(userId)
             }
 
             onSuccess(isEdit)
@@ -226,14 +200,13 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
                             onChange={e => {
                                 const newType = e.target.value
                                 set('id_tipo', newType)
-                                if (parseInt(newType) !== 2 && parseInt(newType) !== 3) {
+                                if (parseInt(newType) !== 2) {
                                     setSelectedModalidades([])
                                     setAddingModalidadeId('')
                                     setErrors(prev => ({ ...prev, modalidades: '' }))
                                 }
                             }}
-                            disabled={isEdit}
-                            className={inputCls(!!errors.id_tipo) + ' appearance-none' + (isEdit ? ' opacity-50 cursor-not-allowed' : '')}
+                            className={inputCls(!!errors.id_tipo) + ' appearance-none'}
                         >
                             <option value="">Selecionar tipo...</option>
                             {USER_TYPES.map(t => (
@@ -338,8 +311,8 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
                         />
                     </Field>
 
-                    {/* Modalidades — apenas para Docente e Aluno */}
-                    {(parseInt(form.id_tipo) === 2 || parseInt(form.id_tipo) === 3) && (
+                    {/* Modalidades — apenas para Docente */}
+                    {parseInt(form.id_tipo) === 2 && (
                         <div>
                             <p className={`text-sm font-medium mb-3 ${errors.modalidades ? 'text-red-600' : 'text-black'}`}>
                                 Modalidades *
@@ -347,7 +320,7 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
 
                             {selectedModalidades.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mb-3">
-                                    {[...selectedModalidades].sort((a, b) => a.nome.localeCompare(b.nome)).map(m => (
+                                    {selectedModalidades.map(m => (
                                         <span
                                             key={m.id_modalidade}
                                             className="inline-flex items-center gap-1.5 text-xs bg-brand-200 text-brand-800 px-2.5 py-1 rounded-full font-medium"
@@ -442,29 +415,6 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
                             </span>
                         </div>
                     </div>
-
-                    {/* Estado — ativo/inativo (Apenas na edição) */}
-                    {isEdit && (
-                        <div className={`flex items-center justify-between px-4 py-3 border rounded-lg transition-colors ${form.estado === 'ATIVO' ? 'bg-white border-neutral-500' : 'bg-red-50/50 border-red-200'}`}>
-                            <div>
-                                <span className={`text-sm font-semibold block ${form.estado === 'ATIVO' ? 'text-neutral-900' : 'text-red-700'}`}>Conta Ativa</span>
-                                <span className={`text-[11px] leading-tight block mt-0.5 ${form.estado === 'ATIVO' ? 'text-neutral-500' : 'text-red-600/80'}`}>
-                                    {form.estado === 'ATIVO'
-                                        ? 'O utilizador tem acesso normal à plataforma.'
-                                        : 'Desativado: não tem acesso e agendas futuras limpas.'}
-                                </span>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => set('estado', form.estado === 'ATIVO' ? 'INATIVO' : 'ATIVO')}
-                                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${form.estado === 'ATIVO' ? 'bg-brand-800' : 'bg-red-500'}`}
-                            >
-                                <span
-                                    className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.estado === 'ATIVO' ? 'translate-x-5' : 'translate-x-0'}`}
-                                />
-                            </button>
-                        </div>
-                    )}
                 </div>
 
                 {/* Footer */}
@@ -482,3 +432,5 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
         </div>
     )
 }
+
+

@@ -1,5 +1,5 @@
-
-const prisma = require('../prismaClient');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 /**
  * Validações e lógica de negócio para Disponibilidades

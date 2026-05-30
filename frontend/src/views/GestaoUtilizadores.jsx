@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Users, Plus, RefreshCw, Pencil, Trash2, X, Check, AlertCircle, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
 import { utilizadorService } from '../services/utilizadorService'
@@ -42,7 +42,6 @@ export default function GestaoUtilizadores() {
 
     const [utilizadores, setUtilizadores] = useState([])
     const [docenteModalidades, setDocenteModalidades] = useState({})
-    const [alunoModalidades, setAlunoModalidades] = useState({})
     const [activeTab, setActiveTab] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -65,23 +64,17 @@ export default function GestaoUtilizadores() {
         try {
             const [users, modalidades] = await Promise.all([
                 utilizadorService.listar(),
-                modalidadeService.listar(null, true, true).catch(() => []),
+                modalidadeService.listar(null, true).catch(() => []),
             ])
             setUtilizadores(users)
-            const docenteMap = {}
-            const alunoMap = {}
+            const map = {}
             modalidades.forEach(m => {
                 ;(m.docente_modalidade ?? []).forEach(d => {
-                    if (!docenteMap[d.id_docente]) docenteMap[d.id_docente] = []
-                    docenteMap[d.id_docente].push({ id_modalidade: m.id_modalidade, nome: m.nome })
-                })
-                ;(m.aluno_modalidade ?? []).forEach(a => {
-                    if (!alunoMap[a.id_utilizador]) alunoMap[a.id_utilizador] = []
-                    alunoMap[a.id_utilizador].push({ id_modalidade: m.id_modalidade, nome: m.nome })
+                    if (!map[d.id_docente]) map[d.id_docente] = []
+                    map[d.id_docente].push(m.nome)
                 })
             })
-            setDocenteModalidades(docenteMap)
-            setAlunoModalidades(alunoMap)
+            setDocenteModalidades(map)
         } catch (err) {
             setError(err.message || 'Erro ao carregar utilizadores.')
         } finally {
@@ -244,12 +237,7 @@ export default function GestaoUtilizadores() {
                                 filtered.map((u, idx) => {
                                     const modalidades = u.id_tipo === 2
                                         ? (docenteModalidades[u.id_utilizador] ?? [])
-                                        : u.id_tipo === 3
-                                            ? (u.aluno?.aluno_modalidade ?? []).map(am => ({
-                                                id_modalidade: am.id_modalidade,
-                                                nome: am.modalidade?.nome
-                                            })).filter(m => m.nome)
-                                            : []
+                                        : []
                                     return (
                                         <tr
                                             key={u.id_utilizador}
@@ -268,23 +256,11 @@ export default function GestaoUtilizadores() {
                                                     {[u.nome, u.apelido].filter(Boolean).join(' ') || u.codigo_username}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3.5 max-w-[220px]">
+                                            <td className="px-4 py-3.5">
                                                 {modalidades.length > 0 ? (
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {modalidades.slice(0, 3).map(m => (
-                                                            <span
-                                                                key={m.id_modalidade}
-                                                                className="inline-flex items-center text-[11px] bg-brand-200 text-brand-800 px-1.5 py-0.5 rounded-full font-medium"
-                                                            >
-                                                                {m.nome}
-                                                            </span>
-                                                        ))}
-                                                        {modalidades.length > 3 && (
-                                                            <span className="inline-flex items-center text-[11px] bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded-full font-medium">
-                                                                +{modalidades.length - 3}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                                    <span className="text-neutral-600">
+                                                        {modalidades.join(', ')}
+                                                    </span>
                                                 ) : (
                                                     <span className="text-gray-300 text-xs">—</span>
                                                 )}

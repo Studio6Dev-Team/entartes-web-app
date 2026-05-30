@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-
-const prisma = require('../prismaClient');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 const tokenValidation = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -14,14 +14,11 @@ const tokenValidation = async (req, res, next) => {
         //busca e compara na BD a role atual do utilizador com o id do token
         const userReal = await prisma.utilizador.findUnique({
             where: { id_utilizador: verified.id },
-            select: { id_tipo: true, password: true, estado: true }
+            select: { id_tipo: true, password: true }
         });
         //se o utilizador nao existir na BD:
         if (!userReal) {
             return res.status(401).json({ message: "Utilizador nao encontrado" });
-        }
-        if (userReal.estado === 'INATIVO') {
-            return res.status(401).json({ message: "Conta inativa. Acesso negado." });
         }
         //se a role da BD for diferente da role do token:
         if (userReal.id_tipo !== verified.role) {

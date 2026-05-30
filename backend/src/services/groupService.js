@@ -1,5 +1,5 @@
-
-const prisma = require('../prismaClient');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // Listar todos os grupos
 const listarTodosOsGrupos = async () => {

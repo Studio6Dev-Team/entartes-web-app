@@ -3,8 +3,8 @@
 // Unifica o anuncioController.js (antigo) e o anuncio.service.js (parcial)
 // Segue as convenções do projecto Ent'artes: todo o acesso ao Prisma fica aqui.
 
-
-const prisma = require('../prismaClient');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // ─────────────────────────────────────────────────────────────
 // AUXILIAR — include reutilizável para queries de anúncios
