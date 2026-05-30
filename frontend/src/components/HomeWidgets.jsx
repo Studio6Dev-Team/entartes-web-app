@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Clock, User, Check, X, RefreshCw, ChevronRight } from 'lucide-react'
+import { Clock, User, Check, X, RefreshCw, ChevronRight, CalendarClock  } from 'lucide-react'
 import { api } from '../services/api'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-export { formatDate, formatTime } from '../utils/dateUtils'
+import { formatDate, formatTime } from '../utils/dateUtils'
+export { formatDate, formatTime }
 export function formatDuration(min) {
   if (!min) return '—'
   const h = Math.floor(min / 60), m = min % 60
@@ -158,15 +159,15 @@ export function CoachingCard({ aula, onConfirm, onReject, loading }) {
   }
 
   return (
-    <div className="flex-1 min-w-[300px] max-w-[380px] bg-brand-50 border border-brand-800 rounded-xl p-4 flex flex-col gap-2.5">
+    <div className="flex-1  flex flex-col min-w-[300px] w-full bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex flex-col gap-2.5">
       <div className="flex flex-col gap-1 text-sm">
         {[['Modalidade', String(aula.modalidade || '—')], ['Data', String(aula.data || '—')],
         ['Docente', String(aula.docente || '—')], ['Duração', String(aula.duracao || '—')],
         ['Hora início', String(aula.hora || '—')], ['Tipo', 'Individual']
         ].map(([k, v]) => (
           <div key={k}>
-            <span className="text-brand-800">{k}: </span>
-            <span className="text-black font-medium">{v}</span>
+            <span className="text-neutral-500 font-medium">{k}: </span>
+            <span className="text-neutral-800 font-semibold">{v}</span>
           </div>
         ))}
       </div>
@@ -183,17 +184,17 @@ export function CoachingCard({ aula, onConfirm, onReject, loading }) {
       </div>
 
       {remaining && (
-        <div className="flex items-center gap-1.5 text-xs text-black">
-          <Clock size={13} /><span>{remaining}</span>
+        <div className="flex items-center gap-1.5 text-xs">
+          <Clock size={14} className="text-amber-600" /><span className="text-amber-700 font-semibold">{remaining}</span>
         </div>
       )}
       <div className="flex items-center gap-2 pt-1">
         <button onClick={() => onReject(aula.id)} disabled={loading === aula.id}
-          className="w-12 h-12 bg-feedback-error border border-feedback-error-dark rounded-xl flex items-center justify-center hover:opacity-90 disabled:opacity-50">
+          className="w-12 h-12 bg-feedback-error border border-feedback-error-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50">
           <X size={18} strokeWidth={3} className="text-white" />
         </button>
         <button onClick={handleConfirm} disabled={loading === aula.id}
-          className="flex-1 h-12 bg-feedback-success border border-brand-800 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold">
+          className="flex-1 h-12 bg-feedback-success border border-feedback-success-dark rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 text-white text-sm font-bold">
           <Check size={16} /> Confirmar
         </button>
       </div>
@@ -203,7 +204,10 @@ export function CoachingCard({ aula, onConfirm, onReject, loading }) {
 
 export function ConfirmedCard({ aula, onOpen, role }) {
   return (
-    <div className="flex-1 min-w-[300px] w-full bg-brand-50 border border-brand-900 rounded-xl p-5 flex flex-col gap-3">
+    <div
+      onClick={onOpen}
+      className="flex-1 min-w-[300px] w-full bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex flex-col gap-3 cursor-pointer hover:scale-[1.01] hover:shadow-md transition-all duration-300 group"
+    >
       <div className="flex gap-3">
         <div className="flex-1 text-sm flex flex-col gap-0.5">
           {[
@@ -212,34 +216,30 @@ export function ConfirmedCard({ aula, onOpen, role }) {
             ['Sala', String(aula.sala || '—')], ['Tipo', String(aula.tipo || '—')]
           ].map(([k, v]) => (
             <div key={k}>
-              <span className="text-brand-800 font-semibold">{k}: </span>
-              <span className="text-black">{v}</span>
+              <span className="text-neutral-500 font-medium">{k}: </span>
+              <span className="text-neutral-800 font-semibold">{v}</span>
             </div>
           ))}
         </div>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <div className="w-14 h-14 rounded-full bg-brand-200 flex items-center justify-center border-2 border-brand-800">
+        <div className="flex flex-col items-center gap-1 text-center my-auto">
+          <div className="w-14 h-14 rounded-full bg-brand-500 flex items-center justify-center border-2 border-brand-800">
             <User size={32} className="text-brand-800" />
           </div>
-          <span className="text-sm font-bold text-brand-900 flex flex-col items-center">
-            {(role === 3 ? String(aula.alunos || '—') : String(aula.docente || '—'))
-              .split(',')
-              .map((n, i) => <span key={i}>{n.trim()}</span>)
-            }
+          <span className="text-neutral-500 text-xs text-center leading-tight">
+            {role === 2 ? 'Aluno(s)' : 'Docente'}<br />
+            <span className="font-bold text-neutral-800 flex flex-col items-center text-sm mt-0.5">
+              {(role === 3 ? String(aula.alunos || '—') : String(aula.docente || '—'))
+                .split(',')
+                .map((n, i) => <span key={i}>{n.trim()}</span>)
+              }
+            </span>
           </span>
-          <span className="text-xs text-black">{role === 2 ? 'Aluno(s)' : 'Docente'}</span>
         </div>
       </div>
       <div className="flex items-center gap-2">
         <span className="bg-feedback-success border border-feedback-success-dark text-white text-xs font-semibold px-3 py-0.5 rounded-full">
           Confirmada
         </span>
-        <button
-          onClick={onOpen}
-          className="bg-brand-500 border border-brand-800 text-brand-900 text-xs font-regular px-3 py-0.5 rounded-full hover:brightness-95 transition-all"
-        >
-          Ver mais
-        </button>
       </div>
     </div>
   )
@@ -247,32 +247,32 @@ export function ConfirmedCard({ aula, onOpen, role }) {
 
 export function RequisicaoCard({ item, onAccept, onReject, loading, onVerPerfil }) {
   return (
-    <div className="bg-brand-50 border border-brand-800 rounded-xl p-4 flex relative min-w-[340px]">
+    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex relative min-w-[340px] hover:scale-[1.01] hover:shadow-md transition-all duration-300 group">
       <div className="flex-1 flex flex-col gap-1.5">
-        <p className="text-sm"><span className="text-brand-900 font-medium">Modalidade - </span>
-          <span className="text-brand-800">{item.modalidade}</span></p>
-        <p className="text-sm"><span className="text-brand-900 font-medium">Data - </span>
-          <span className="text-brand-800">{item.data}</span></p>
-        <p className="text-sm"><span className="text-brand-900 font-medium">Duração - </span>
-          <span className="text-brand-800">{item.duracao}</span></p>
-        <p className="text-sm"><span className="text-brand-900 font-medium">Hora início - </span>
-          <span className="text-brand-800">{item.hora}</span></p>
-        <p className="text-sm"><span className="text-brand-900 font-medium">Tipo - </span>
-          <span className="text-brand-800">Individual</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Modalidade: </span>
+          <span className="text-neutral-800 font-semibold">{item.modalidade}</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Data: </span>
+          <span className="text-neutral-800 font-semibold">{item.data}</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Duração: </span>
+          <span className="text-neutral-800 font-semibold">{item.duracao}</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Hora início: </span>
+          <span className="text-neutral-800 font-semibold">{item.hora}</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Tipo: </span>
+          <span className="text-neutral-800 font-semibold">Individual</span></p>
         {item.alunos?.length > 0 && (
           <button onClick={() => onVerPerfil(item.alunos[0])}
-            className="flex items-center gap-2 mt-1 bg-brand-200 rounded-lg px-2.5 py-1.5 w-fit
-              hover:bg-brand-800/20 transition-colors">
+            className="flex items-center gap-2 mt-1 bg-neutral-100 rounded-lg px-2.5 py-1.5 w-fit
+              hover:bg-neutral-200 transition-colors">
             <div className="w-6 h-6 rounded-full bg-brand-800 flex items-center justify-center">
               <User size={13} className="text-white" />
             </div>
-            <span className="text-xs font-semibold text-brand-800">{String(item.alunos[0] || '—')}</span>
-            <ChevronRight size={12} className="text-brand-800" />
+            <span className="text-xs font-semibold text-neutral-800">{String(item.alunos[0] || '—')}</span>
+            <ChevronRight size={12} className="text-neutral-500" />
           </button>
         )}
         <div className="flex items-center gap-1.5 mt-1">
-          <Clock size={13} className="text-brand-800" />
-          <span className="text-xs font-semibold text-black">Nas próximas 48h</span>
+          <Clock size={14} className="text-amber-600" />
+          <span className="text-xs font-semibold text-amber-700">Nas próximas 48h</span>
         </div>
       </div>
       <div className="flex flex-col items-end justify-end gap-2">
@@ -280,11 +280,11 @@ export function RequisicaoCard({ item, onAccept, onReject, loading, onVerPerfil 
           ? <RefreshCw size={18} className="text-brand-800 animate-spin" />
           : <div className="flex gap-2">
             <button onClick={() => onReject(item.id)}
-              className="w-12 h-12 bg-feedback-error border border-feedback-error-dark rounded-xl flex items-center justify-center hover:opacity-90">
+              className="w-12 h-12 bg-feedback-error border border-feedback-error-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity">
               <X size={22} strokeWidth={3} className="text-white" />
             </button>
             <button onClick={() => onAccept(item.id)}
-              className="w-12 h-12 bg-feedback-success border border-brand-800 rounded-xl flex items-center justify-center hover:opacity-90">
+              className="w-12 h-12 bg-feedback-success border border-feedback-success-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity">
               <Check size={22} strokeWidth={3} className="text-white" />
             </button>
           </div>
@@ -296,34 +296,34 @@ export function RequisicaoCard({ item, onAccept, onReject, loading, onVerPerfil 
 
 export function PresencaDocenteCard({ item, onConfirm, onReject, loading }) {
   return (
-    <div className="bg-brand-50 border border-brand-800 rounded-xl p-4 flex relative min-w-[340px]">
+    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex relative min-w-[340px]">
       <div className="flex-1 flex flex-col gap-1.5">
-        <p className="text-sm"><span className="text-brand-900 font-semibold">Modalidade - </span>
-          <span className="text-brand-800">{item.modalidade}</span></p>
-        <p className="text-sm"><span className="text-brand-900 font-semibold">Data - </span>
-          <span className="text-brand-800">{item.data}</span></p>
-        <p className="text-sm"><span className="text-brand-900 font-semibold">Hora - </span>
-          <span className="text-brand-800">{item.hora}</span></p>
-        <p className="text-sm"><span className="text-brand-900 font-semibold">Duração - </span>
-          <span className="text-brand-800">{item.duracao}</span></p>
-        <p className="text-sm"><span className="text-brand-900 font-semibold">Tipo - </span>
-          <span className="text-brand-800">Individual</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Modalidade: </span>
+          <span className="text-neutral-800 font-semibold">{item.modalidade}</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Data: </span>
+          <span className="text-neutral-800 font-semibold">{item.data}</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Hora: </span>
+          <span className="text-neutral-800 font-semibold">{item.hora}</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Duração: </span>
+          <span className="text-neutral-800 font-semibold">{item.duracao}</span></p>
+        <p className="text-sm"><span className="text-neutral-500 font-medium">Tipo: </span>
+          <span className="text-neutral-800 font-semibold">Individual</span></p>
         <div className="flex items-center gap-1.5 mt-1">
-          <Clock size={25} className="text-brand-800" />
-          <span className="text-sm font-semibold text-black">A expirar nas próximas 48h</span>
+          <Clock size={16} className="text-amber-600" />
+          <span className="text-xs font-semibold text-amber-700">A expirar nas próximas 48h</span>
         </div>
       </div>
-      <div className="flex flex-col items-end justify-end gap-2">
+      <div className="flex flex-col items-end justify-center gap-2 pr-[5%]">
         {loading === item.id
           ? <RefreshCw size={18} className="text-brand-800 animate-spin" />
-          : <div className="flex gap-2">
+          : <div className="flex flex-col gap-2">
             <button onClick={() => onReject(item.id)}
-              className="w-12 h-12 bg-feedback-error border border-feedback-error-dark rounded-xl flex items-center justify-center hover:opacity-90">
-              <X size={22} strokeWidth={3} className="text-white" />
+              className="w-12 h-12 bg-transparent border-2 border-feedback-error text-feedback-error rounded-full flex items-center justify-center hover:bg-red-50 transition-colors">
+              <X size={32} strokeWidth={3} />
             </button>
             <button onClick={() => onConfirm(item.id)}
-              className="w-12 h-12 bg-feedback-success border border-brand-800 rounded-xl flex items-center justify-center hover:opacity-90">
-              <Check size={22} strokeWidth={3} className="text-white" />
+              className="w-12 h-12 bg-transparent border-2 border-feedback-success text-feedback-success rounded-full flex items-center justify-center hover:bg-emerald-50 transition-colors">
+              <Check size={32} strokeWidth={3} />
             </button>
           </div>
         }
@@ -439,6 +439,203 @@ export function RoomOccupancyWidget({ data }) {
   )
 }
 
+// ─── SalasDoDiaWidget ─────────────────────────────────────────────────────────
+// Layout: cada SALA é uma COLUNA. As aulas empilham VERTICALMENTE dentro de cada
+// coluna, como um quadro de horários de estúdio (imagem de referência).
+
+const SESSION_PALETTE = [
+  { bg: '#CCE8E6', border: '#006A68', text: '#00504E', label: '#006A68' },
+  { bg: '#E8F5FF', border: '#90CAF9', text: '#1565C0', label: '#1565C0' },
+  { bg: '#F3E5F5', border: '#CE93D8', text: '#6A1B9A', label: '#6A1B9A' },
+  { bg: '#FFF3E0', border: '#FFCC80', text: '#E65100', label: '#E65100' },
+  { bg: '#FCE4EC', border: '#F48FB1', text: '#C62828', label: '#C62828' },
+  { bg: '#E0F7FA', border: '#80DEEA', text: '#00695C', label: '#00695C' },
+  { bg: '#E8F5E9', border: '#A5D6A7', text: '#2E7D32', label: '#2E7D32' },
+  { bg: '#FFF8E1', border: '#FFE082', text: '#F57F17', label: '#F57F17' },
+]
+
+
+export function SalasDoDiaWidget() {
+  const [salas, setSalas] = useState([])
+  const [loadingWidget, setLoadingWidget] = useState(true)
+
+  useEffect(() => {
+    const hoje = new Date()
+    const yyyy = hoje.getFullYear()
+    const mm = String(hoje.getMonth() + 1).padStart(2, '0')
+    const dd = String(hoje.getDate()).padStart(2, '0')
+    const dataStr = `${yyyy}-${mm}-${dd}`
+
+    Promise.all([
+      api.get('/salas').catch(() => []),
+      api.get('/coaching/pedidos-pendentes?estados=3').catch(() => [])
+    ])
+      .then(([salasRes, pendentesRes]) => {
+        const roomsList = Array.isArray(salasRes) ? salasRes : []
+        const classesList = Array.isArray(pendentesRes) ? pendentesRes : []
+
+        const classesHoje = classesList.filter(c => c.data && c.data.substring(0, 10) === dataStr)
+
+        const mappedSalas = roomsList.map(sala => {
+          const roomClasses = classesHoje.filter(c => c.sala_atual === sala.nome)
+          const ocupacoes = roomClasses.map(c => {
+            const startStr = formatTime(c.hora_inicio)
+            let endStr = '00:00'
+            if (startStr && startStr !== '—') {
+              const [h, m] = startStr.split(':').map(Number)
+              const totalMin = h * 60 + m + (c.duracao_minutos || 60)
+              const endH = String(Math.floor(totalMin / 60) % 24).padStart(2, '0')
+              const endM = String(totalMin % 60).padStart(2, '0')
+              endStr = `${endH}:${endM}`
+            }
+            return {
+              id: c.id_marcacao,
+              inicio: startStr,
+              fim: endStr,
+              docente: c.docente || '—',
+              modalidade: c.modalidade || 'Coaching',
+              duracao_minutos: c.duracao_minutos || 60,
+            }
+          })
+          ocupacoes.sort((a, b) => a.inicio.localeCompare(b.inicio))
+          return { id_sala: sala.id_sala, nome: sala.nome, descricao: sala.descricao, ocupacoes }
+        })
+
+        setSalas(mappedSalas)
+      })
+      .catch(() => setSalas([]))
+      .finally(() => setLoadingWidget(false))
+  }, [])
+
+  const hoje = new Date()
+  const diaSemana = hoje.toLocaleDateString('pt-PT', { weekday: 'long' })
+  const dataFmt = hoje.toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' })
+  const allUniqueTimes = [...new Set(salas.flatMap(s => s.ocupacoes.map(o => o.inicio)))].sort()
+  const timeColorMap = {}
+  allUniqueTimes.forEach((t, i) => { timeColorMap[t] = SESSION_PALETTE[i % SESSION_PALETTE.length] })
+
+  if (loadingWidget) {
+    return (
+      <div className="flex items-center justify-center py-8 text-brand-800">
+        <RefreshCw size={20} className="animate-spin" />
+      </div>
+    )
+  }
+
+  const colWidth = 150
+  const totalW = salas.length * (colWidth + 8)
+
+  return (
+    <div className="flex flex-col">
+
+      {/* Sub-header */}
+      <div className="flex items-center gap-1.5 mb-3">
+        <CalendarClock size={14} className="text-brand-800" />
+        <span className="text-[11px] font-bold text-brand-800 capitalize">{diaSemana}, {dataFmt}</span>
+      </div>
+
+      {/* Date banner */}
+      <div className="bg-brand-200 border border-brand-500 rounded-xl px-3.5 py-1.5 text-center mb-2.5">
+        <span className="text-[11px] font-extrabold text-brand-800 uppercase tracking-widest">
+          {diaSemana.toUpperCase()} | {hoje.getDate()} DE {hoje.toLocaleDateString('pt-PT', { month: 'long' }).toUpperCase()} DE {hoje.getFullYear()}
+        </span>
+      </div>
+
+      {/* Grid */}
+      {salas.length === 0 ? (
+        <p className="text-[11px] text-neutral-300 italic text-center py-4">Sem salas disponíveis.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <div
+            className="border border-neutral-200 rounded-xl overflow-hidden"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${salas.length}, minmax(${colWidth}px, 1fr))`,
+              minWidth: `${totalW}px`,
+            }}
+          >
+            {/* Room headers */}
+            {salas.map((sala, si) => (
+              <div
+                key={`hdr-${sala.nome}`}
+                className="px-2.5 py-2.5 bg-brand-800 flex items-center justify-center"
+                style={{ borderRight: si < salas.length - 1 ? '1px solid #00504E' : 'none' }}
+              >
+                <span className="text-[11px] font-extrabold text-white uppercase tracking-wider text-center">
+                  {sala.nome}
+                </span>
+              </div>
+            ))}
+
+            {/* Cells */}
+            {allUniqueTimes.length === 0 ? (
+              salas.map((sala, si) => (
+                <div
+                  key={`empty-${sala.nome}`}
+                  className="flex items-center justify-center min-h-[100px] p-5"
+                  style={{
+                    background: si % 2 === 0 ? '#FFFFFF' : '#F8FFFE',
+                    borderRight: si < salas.length - 1 ? '1px solid #E8F0EF' : 'none',
+                    borderTop: '1px solid #E8F0EF',
+                  }}
+                >
+                  <span className="text-[10px] text-brand-800 font-semibold opacity-50 italic">Disponível</span>
+                </div>
+              ))
+            ) : (
+              allUniqueTimes.map(timeSlot =>
+                salas.map((sala, si) => {
+                  const oc = sala.ocupacoes.find(o => o.inicio === timeSlot)
+                  return (
+                    <div
+                      key={`cell-${sala.id_sala || sala.nome}-${timeSlot}`}
+                      className="flex flex-col justify-center min-h-[100px] p-2"
+                      style={{
+                        background: si % 2 === 0 ? '#FFFFFF' : '#F8FFFE',
+                        borderRight: si < salas.length - 1 ? '1px solid #E8F0EF' : 'none',
+                        borderTop: '1px solid #E8F0EF',
+                      }}
+                    >
+                      {oc ? (() => {
+                        const color = timeColorMap[oc.inicio] || SESSION_PALETTE[0]
+                        return (
+                          <div
+                            className="flex flex-col gap-0.5 rounded-lg px-2.5 py-2 cursor-default transition-all duration-100 hover:-translate-y-px"
+                            style={{ background: color.bg, border: `1.5px solid ${color.border}` }}
+                            onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 4px 12px ${color.border}55` }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
+                          >
+                            <span className="text-[10px] font-extrabold uppercase tracking-wide truncate" style={{ color: color.text }}>
+                              {oc.modalidade}
+                            </span>
+                            <span className="text-[9px] font-bold opacity-90" style={{ color: color.text }}>
+                              {oc.inicio} – {oc.fim}
+                            </span>
+                            {oc.docente && (
+                              <span className="text-[9px] font-semibold opacity-75 truncate italic" style={{ color: color.text }}>
+                                ({oc.docente})
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })() : (
+                        sala.ocupacoes.length === 0 && timeSlot === allUniqueTimes[0] ? (
+                          <div className="flex items-center justify-center w-full h-full">
+                            <span className="text-[10px] text-neutral-300 italic">Disponível</span>
+                          </div>
+                        ) : null
+                      )}
+                    </div>
+                  )
+                })
+              )
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 export function Toast({ msg, type, onClose }) {
   return (
     <div className={`fixed bottom-6 right-6 z-[60] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white font-['Sora'] text-sm font-medium ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
@@ -448,5 +645,3 @@ export function Toast({ msg, type, onClose }) {
     </div>
   )
 }
-
-

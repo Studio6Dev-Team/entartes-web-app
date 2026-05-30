@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 
 
@@ -17,7 +18,7 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'Documentação interativa da API Entartes (Módulos: Auth, Users, Events, Coaching, Relatorios, Notificações, Salas, Anúncios)',
     },
-    servers: [{ url: 'http://localhost:3000' }],
+    servers: [{ url: process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : 'http://localhost:3000' }],
     tags: [
       { name: 'Auth', description: 'Endpoints de Autenticação (Login, Registo)' },
       { name: 'Users', description: 'Operações CRUD de Utilizadores' },
@@ -61,6 +62,7 @@ const notificacaoRoutes = require('./src/routes/notificacaoRoutes');
 const salaRoutes = require('./src/routes/salaRoutes');
 const modalidadeRoutes = require('./src/routes/modalidadeRoutes');
 
+app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json());
 
@@ -78,6 +80,12 @@ app.use('/api/horario', horarioRoutes);
 app.use('/api/notificacoes', notificacaoRoutes);
 app.use('/api/salas', salaRoutes);
 app.use('/api/modalidades', modalidadeRoutes);
+
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendDist));
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

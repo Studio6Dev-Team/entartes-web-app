@@ -1,13 +1,29 @@
 const bcrypt = require('bcrypt');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
-const getUsers = async (options) => {
-    return await prisma.utilizador.findMany(options);
+const prisma = require('../prismaClient');
+
+const getUsers = async (options = {}) => {
+    const queryOptions = { ...options };
+    if (!queryOptions.include && !queryOptions.select) {
+        queryOptions.include = {
+            aluno: { include: { aluno_modalidade: { include: { modalidade: true } } } },
+            docente: { include: { docente_modalidade: { include: { modalidade: true } } } },
+            coordenadora: true,
+        };
+    }
+    return await prisma.utilizador.findMany(queryOptions);
 };
 
-const getUser = async (options) => {
-    return await prisma.utilizador.findUnique(options);
+const getUser = async (options = {}) => {
+    const queryOptions = { ...options };
+    if (!queryOptions.include && !queryOptions.select) {
+        queryOptions.include = {
+            aluno: { include: { aluno_modalidade: { include: { modalidade: true } } } },
+            docente: { include: { docente_modalidade: { include: { modalidade: true } } } },
+            coordenadora: true,
+        };
+    }
+    return await prisma.utilizador.findUnique(queryOptions);
 };
 
 const deleteUser = async (id_utilizador) => {
@@ -56,6 +72,7 @@ const criarUtilizador = async (dados) => {
         telemovel,
         nif,
         coaching,
+        modalidades,
     } = dados;
 
     const salt = await bcrypt.genSalt(10);
@@ -109,6 +126,12 @@ const criarUtilizador = async (dados) => {
                 data: {
                     id_utilizador: novoUtilizador.id_utilizador,
                     coaching: coaching ?? false,
+                ...(modalidades && {
+                    aluno_modalidade: {
+                        create: (Array.isArray(modalidades) ? modalidades : [modalidades])
+                            .map(id => ({ id_modalidade: parseInt(id) }))
+                    }
+                })
                 }
             });
         }
@@ -146,6 +169,7 @@ const atualizarUtilizador = async (id_utilizador, dados) => {
         nif,
         estado,
         coaching,
+        modalidades,
     } = dados;
 
     const userId = parseInt(id_utilizador);
@@ -192,11 +216,84 @@ const atualizarUtilizador = async (id_utilizador, dados) => {
                 data: dataToUpdate,
             });
 
-            // Atualizar coaching no aluno se o tipo é/continua a ser aluno
-            if (novoTipo === 3 && coaching !== undefined && novoTipo === tipoAtual) {
+            // Lógica de inativação do Docente
+            if (estado === 'INATIVO' && utilizadorAtual.estado !== 'INATIVO' && novoTipo === 2) {
+                // 1. Cancelar marcações PENDENTES (1) e CONFIRMADAS (3)
+                const marcacoesParaCancelar = await tx.marcacao.findMany({
+                    where: {
+                        id_docente: userId,
+                        id_estado: { in: [1, 3] }
+                    },
+                    include: {
+                        aluno_marcacao: {
+                            include: { aluno: { include: { utilizador: true } } }
+                        }
+                    }
+                });
+
+                for (const m of marcacoesParaCancelar) {
+                    await tx.marcacao.update({
+                        where: { id_marcacoes: m.id_marcacoes },
+                        data: { id_estado: 5 } // CANCELADA
+                    });
+                    await tx.marcacao_estado_historico.create({
+                        data: {
+                            id_marcacoes: m.id_marcacoes,
+                            id_estado: 5
+                        }
+                    });
+                    // Notificar alunos
+                    for (const am of m.aluno_marcacao) {
+                        if (am.aluno && am.aluno.utilizador) {
+                            await tx.notificacao.create({
+                                data: {
+                                    id_user: am.aluno.id_utilizador,
+                                    titulo: 'Sessão Cancelada',
+                                    mensagem: `A tua sessão agendada com o docente ${utilizadorAtual.nome} foi cancelada devido a indisponibilidade do docente.`,
+                                }
+                            });
+                        }
+                    }
+                }
+
+                // 2. Apagar disponibilidades
+                await tx.disponibilidade.deleteMany({
+                    where: { id_docente: userId }
+                });
+
+                // 3. Remover de todos os eventos em que o docente está envolvido
+                await tx.evento_docente.deleteMany({
+                    where: { id_docente: userId }
+                });
+
+                // 4. Desativar atividade
+                await tx.docente.update({
+                    where: { id_utilizador: userId },
+                    data: { estado_atividade: false }
+                });
+            }
+
+            // Lógica de reativação do Docente
+            if (estado === 'ATIVO' && utilizadorAtual.estado !== 'ATIVO' && novoTipo === 2) {
+                await tx.docente.update({
+                    where: { id_utilizador: userId },
+                    data: { estado_atividade: true }
+                });
+            }
+
+            // Atualizar coaching e modalidades no aluno se o tipo é/continua a ser aluno
+            if (novoTipo === 3 && novoTipo === tipoAtual && (coaching !== undefined || modalidades !== undefined)) {
+                const alunoDataToUpdate = {};
+                if (coaching !== undefined) alunoDataToUpdate.coaching = coaching;
+                if (modalidades !== undefined) {
+                    alunoDataToUpdate.aluno_modalidade = {
+                        deleteMany: {}, // Elimina as associações antigas
+                        create: (Array.isArray(modalidades) ? modalidades : [modalidades]).map(id => ({ id_modalidade: parseInt(id) }))
+                    };
+                }
                 await tx.aluno.update({
                     where: { id_utilizador: userId },
-                    data: { coaching },
+                    data: alunoDataToUpdate,
                 });
             }
 
@@ -213,7 +310,17 @@ const atualizarUtilizador = async (id_utilizador, dados) => {
 
                 // Adicionar na nova tabela
                 if (novoTipo === 3) {
-                    await tx.aluno.create({ data: { id_utilizador: userId } });
+                    await tx.aluno.create({ 
+                        data: { 
+                            id_utilizador: userId,
+                            coaching: coaching ?? false,
+                            ...(modalidades && {
+                                aluno_modalidade: {
+                                    create: (Array.isArray(modalidades) ? modalidades : [modalidades]).map(id => ({ id_modalidade: parseInt(id) }))
+                                }
+                            })
+                        } 
+                    });
                 } else if (novoTipo === 2) {
                     await tx.docente.create({ data: { id_utilizador: userId, estado_atividade: true } });
                 } else if (novoTipo === 1) {

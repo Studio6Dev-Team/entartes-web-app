@@ -3,7 +3,7 @@ import { formatDate, formatTime } from '../utils/dateUtils'
 import { useLocation } from 'react-router-dom'
 import {
   Clock, CheckCircle2,
-  XCircle, AlertCircle, RefreshCw, Plus, X, BookOpen, ArrowUpDown, Check
+  XCircle, AlertCircle, RefreshCw, Plus, X, BookOpen, ArrowUpDown, ArrowUp, ArrowDown, Check
 } from 'lucide-react'
 import coachingService from '../services/coachingService'
 import { api } from '../services/api'
@@ -69,10 +69,11 @@ export default function Aulas() {
   const [error, setError] = useState('')
   const [loadingId, setLoadingId] = useState(null)
   const [toast, setToast] = useState(null)
-  const [showAll, setShowAll] = useState(false)
   const [modalAula, setModalAula] = useState(null)
   const [filtroEstado, setFiltroEstado] = useState(location.state?.filtroEstado || (role === 1 ? '1' : 'todos'))
   const [filtroModalidade, setFiltroModalidade] = useState('todas')
+  const [filtro48h, setFiltro48h] = useState(location.state?.filtro48h ?? false)
+  const [sortConfig, setSortConfig] = useState({ key: null, dir: 'asc' })
   const [showNovaDisponibilidade, setShowNovaDisponibilidade] = useState(false)
   const [showNovaMarcacao, setShowNovaMarcacao] = useState(false)
   const [disponibilidades, setDisponibilidades] = useState([])
@@ -93,11 +94,12 @@ export default function Aulas() {
     try {
       let data;
       if (role === 1) {
-        data = await coachingService.listarPedidosPendentes({ estados: '1,2,3,4,5' });
+        const estadosParam = filtroEstado === 'todos' ? '1,2,3,4,5' : filtroEstado;
+        data = await coachingService.listarPedidosPendentes({ estados: estadosParam });
       } else if (role === 2) {
-        data = await coachingService.listarMinhasAulas();
+        data = await coachingService.listarMinhasAulas(filtroEstado === 'todos' ? null : filtroEstado);
       } else {
-        data = await coachingService.listarMeusPedidos();
+        data = await coachingService.listarMeusPedidos(filtroEstado === 'todos' ? null : filtroEstado);
       }
 
       const rawData = Array.isArray(data) ? data : (data?.data || [])
@@ -131,7 +133,7 @@ export default function Aulas() {
     } finally {
       setLoading(false)
     }
-  }, [showAll, role])
+  }, [filtroEstado, role])
 
   useEffect(() => { fetchMarcacoes() }, [fetchMarcacoes])
 
@@ -140,7 +142,22 @@ export default function Aulas() {
     setLoadingDisp(true)
     try {
       const data = await disponibilidadeService.listar()
-      setDisponibilidades(Array.isArray(data) ? data : data.data || [])
+      const rawList = Array.isArray(data) ? data : data.data || []
+      
+      const hoje = new Date()
+      hoje.setHours(0, 0, 0, 0)
+      
+      const filtradas = rawList.filter(d => {
+        if (d.data_especifica) {
+          const dateStr = String(d.data_especifica).split('T')[0]
+          const dt = new Date(dateStr + "T12:00:00")
+          dt.setHours(0, 0, 0, 0)
+          return dt >= hoje
+        }
+        return true
+      })
+      
+      setDisponibilidades(filtradas)
     } catch { /* silencioso */ }
     finally { setLoadingDisp(false) }
   }, [role])
@@ -238,7 +255,7 @@ export default function Aulas() {
   // ── Lógica 48h para aluno ─────────────────────────────────────────────────
   // Uma aula precisa de confirmação se: estado=Confirmada + data já passou + menos de 48h
   function precisaConfirmacao(aula) {
-    if (aula.id_estado !== 3) return false
+    if (aula.id_estado !== 3 || aula.ja_validou) return false
     if (!aula._data_raw) return false
     const fim = new Date(aula._data_raw)
     fim.setMinutes(fim.getMinutes() + (aula.duracao_min || 60))
@@ -255,19 +272,38 @@ export default function Aulas() {
   const modalidades = ['todas', ...new Set(marcacoes.map(a => a.modalidade).filter(Boolean))]
 
   const marcacoesFiltradas = marcacoes.filter(a => {
-    // Explicit filters always take precedence
-    if (filtroEstado !== 'todos' && String(a.id_estado) !== String(filtroEstado)) return false
     if (filtroModalidade !== 'todas' && a.modalidade !== filtroModalidade) return false
+    if (filtro48h) {
+      if (!a._data_raw) return false
+      const inicio = new Date(a._data_raw)
+      const agora = new Date()
+      const diffHoras = (inicio - agora) / (1000 * 60 * 60)
+      if (diffHoras < 0 || diffHoras > 48) return false
 
-    // Default visibility rules only when no explicit estado filter and not showing all
-    if (filtroEstado === 'todos' && !showAll) {
-      if (role === 1 && a.id_estado !== 1 && a.id_estado !== 2) return false
-      if ([4, 5].includes(a.id_estado)) return false
     }
 
     return true
   })
 
+  const SORT_KEYS = { Modalidade: 'modalidade', Data: '_data_raw', Hora: 'hora_inicio_raw', 'Duração': 'duracao_min', 'Tipo Aula': 'tipo_aula', Sala: 'sala', Estado: 'id_estado' }
+
+  const handleSort = (col) => {
+    const key = SORT_KEYS[col]
+    if (!key) return
+    setSortConfig(prev => ({ key, dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc' }))
+  }
+
+  const marcacoesOrdenadas = sortConfig.key
+    ? [...marcacoesFiltradas].sort((a, b) => {
+        const va = a[sortConfig.key] ?? ''
+        const vb = b[sortConfig.key] ?? ''
+        const cmp = typeof va === 'number' && typeof vb === 'number'
+          ? va - vb
+          : String(va).localeCompare(String(vb))
+        return sortConfig.dir === 'asc' ? cmp : -cmp
+      })
+    : marcacoesFiltradas
+  
   // Se o id_estado for null, pomos "Desconhecido" contido no 0
   const counts = marcacoes.reduce((acc, m) => {
     const id = m.id_estado || 0
@@ -287,7 +323,7 @@ export default function Aulas() {
               {role === 1 ? 'Gestão de Coachings' : 'Gestão de Presenças'}
             </p>
             <h1 className="text-neutral-800 font-normal text-3xl leading-tight tracking-tight">
-              {showAll ? 'Todos os Coachings' : 'Confirmação de Coachings'}
+                Confirmação de Coachings
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -309,17 +345,13 @@ export default function Aulas() {
                 Nova Disponibilidade
               </button>
             )}
-            {pendentes > 0 && !showAll && (
+            {pendentes > 0 && (
               <div className="flex items-center gap-1.5 bg-amber-100 border border-amber-300 text-amber-700 px-3 py-1.5 rounded-full text-sm font-semibold">
                 <AlertCircle size={14} />
                 {pendentes} pendente{pendentes > 1 ? 's' : ''}
               </div>
             )}
-            <button onClick={() => setShowAll(v => !v)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-brand-800 text-brand-800 text-sm font-medium hover:bg-brand-200 transition-colors">
-              <BookOpen size={15} />
-              {showAll ? 'Ver próximas 48h' : 'Ver todas'}
-            </button>
+            
             <button onClick={fetchMarcacoes} disabled={loading} title="Atualizar"
               className="w-9 h-9 rounded-full border border-neutral-600/30 flex items-center justify-center hover:bg-neutral-50 transition-colors disabled:opacity-40">
               <RefreshCw size={15} className={`text-neutral-600 ${loading ? 'animate-spin' : ''}`} />
@@ -328,8 +360,7 @@ export default function Aulas() {
         </div>
 
         {/* Filtros */}
-        {!loading && marcacoes.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
               Filtrar:
             </div>
@@ -354,14 +385,25 @@ export default function Aulas() {
                 className="appearance-none pl-3 pr-8 py-1.5 rounded-lg border border-neutral-600/25 text-xs font-medium text-neutral-800 bg-white focus:outline-none focus:border-brand-800 cursor-pointer"
               >
                 <option value="todos">Todos os estados</option>
-                {Object.entries(STATUS_CFG).map(([id, cfg]) =>
-                  counts[Number(id)] ? <option key={id} value={id}>{cfg.label} ({counts[Number(id)]})</option> : null
-                )}
+                {Object.entries(STATUS_CFG).map(([id, cfg]) => (
+                  <option key={id} value={id}>{cfg.label}</option>
+                ))}
               </select>
             </div>
-            {(filtroEstado !== 'todos' || filtroModalidade !== 'todas') && (
+            <button
+              onClick={() => setFiltro48h(v => !v)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${
+                filtro48h
+                  ? 'bg-brand-800 text-white border-brand-800'
+                  : 'border-brand-800 text-brand-800 hover:bg-brand-100'
+              }`}
+            >
+              <Clock size={11} />
+              Próximas 48h
+            </button>
+            {(filtroEstado !== 'todos' || filtroModalidade !== 'todas' || filtro48h) && (
               <button
-                onClick={() => { setFiltroEstado('todos'); setFiltroModalidade('todas') }}
+                onClick={() => { setFiltroEstado('todos'); setFiltroModalidade('todas'); setFiltro48h(false) }}
                 className="text-xs text-red-500 font-medium hover:text-red-700 flex items-center gap-1"
               >
                 <X size={11} /> Limpar filtros
@@ -371,7 +413,6 @@ export default function Aulas() {
               {marcacoesFiltradas.length} aula{marcacoesFiltradas.length !== 1 ? 's' : ''}
             </span>
           </div>
-        )}
 
         {/* Erro */}
         {error && (
@@ -464,19 +505,23 @@ export default function Aulas() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-neutral-50 border-b-2 border-neutral-600/20">
-                {['Modalidade', 'Data', 'Hora', 'Duração', 'Tipo Aula', 'Sala', 'Estado', 'Ação', ''].map((col, i) => (
-                  <th
-                    key={col || i}
-                    className="px-4 py-3.5 text-left text-xs font-bold text-brand-800 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    {col && (
+                {['Modalidade', 'Data', 'Hora', 'Duração', 'Tipo Aula', 'Sala', 'Estado', 'Ação'].map((col, i) => {
+                  const sortable = !!SORT_KEYS[col]
+                  const active = sortable && sortConfig.key === SORT_KEYS[col]
+                  const Icon = active ? (sortConfig.dir === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown
+                  return (
+                    <th
+                      key={col || i}
+                      onClick={sortable ? () => handleSort(col) : undefined}
+                      className={`px-4 py-3.5 text-left text-xs font-bold text-brand-800 uppercase tracking-wider whitespace-nowrap ${sortable ? 'cursor-pointer select-none hover:bg-neutral-100' : ''}`}
+                    >
                       <span className="flex items-center gap-1">
                         {col}
-                        {col && col !== '' && <ArrowUpDown size={10} className="text-brand-800/30" />}
+                        {sortable && <Icon size={10} className={active ? 'text-brand-800' : 'text-brand-800/30'} />}
                       </span>
-                    )}
-                  </th>
-                ))}
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
             <tbody>
@@ -487,27 +532,25 @@ export default function Aulas() {
                   <td colSpan={9} className="py-20 text-center">
                     <BookOpen size={40} className="mx-auto text-brand-800/15 mb-3" />
                     <p className="text-sm text-neutral-600 font-medium">
-                      {showAll
-                        ? 'Não existem aulas registadas.'
-                        : 'Nenhuma aula para confirmar nas próximas 48h.'}
+                      Não existem aulas para o estado selecionado.
                     </p>
                   </td>
                 </tr>
               ) : (
-                marcacoesFiltradas.map((row, idx) => {
+                marcacoesOrdenadas.map((row, idx) => {
                   const isLoading = loadingId === row.id
                   const isPendente = row.id_estado === 1 || row.id_estado === 2
 
                   // Janela de confirmação de presença (role 2 e 3): estado Confirmada + aula já passou + ≤48h
                   const podeConfirmarPresenca = (() => {
-                    if (role === 1 || row.id_estado !== 3 || !row._data_raw) return false
+                    if (role === 1 || row.id_estado !== 3 || !row._data_raw || row.ja_validou) return false
                     const fim = new Date(row._data_raw)
                     fim.setMinutes(fim.getMinutes() + (row.duracao_min || 60))
                     const diffHoras = (new Date() - fim) / (1000 * 60 * 60)
                     return diffHoras >= 0 && diffHoras <= 48
                   })()
                   const prazoExpiradoTabela = (() => {
-                    if (role === 1 || row.id_estado !== 3 || !row._data_raw) return false
+                    if (role === 1 || row.id_estado !== 3 || !row._data_raw || row.ja_validou) return false
                     const fim = new Date(row._data_raw)
                     fim.setMinutes(fim.getMinutes() + (row.duracao_min || 60))
                     const diffHoras = (new Date() - fim) / (1000 * 60 * 60)
@@ -516,7 +559,8 @@ export default function Aulas() {
                   return (
                     <tr
                       key={row.id ?? idx}
-                      className={`border-b border-neutral-600/10 hover:bg-brand-50 transition-colors ${idx % 2 === 0 ? '' : 'bg-brand-50'}`}
+                      onClick={() => setModalAula(row)}
+                      className={`border-b border-neutral-600/10 hover:bg-brand-50 transition-colors cursor-pointer ${idx % 2 === 0 ? '' : 'bg-brand-50'}`}
                     >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
@@ -532,7 +576,7 @@ export default function Aulas() {
                       <td className="px-4 py-4">
                         <StatusBadge id_estado={row.id_estado} estado_nome={row.estado_nome} />
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
                         {isLoading ? (
                           <RefreshCw size={18} className="text-brand-800 animate-spin" />
                         ) : role === 1 && isPendente ? (
@@ -574,12 +618,12 @@ export default function Aulas() {
                               </button>
                             </div>
                           ) : (
-                          <button onClick={() => setConfirmId(row.id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 text-red-700 border border-red-200 text-xs font-bold hover:bg-red-200 transition-colors"
-                          >
-                            <X size={12} strokeWidth={3} />
-                            Cancelar
-                          </button>
+                            <button onClick={() => setConfirmId(row.id)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 text-red-700 border border-red-200 text-xs font-bold hover:bg-red-200 transition-colors"
+                            >
+                              <X size={12} strokeWidth={3} />
+                              Cancelar
+                            </button>
                           )
                         ) : podeConfirmarPresenca ? (
                           <button
@@ -589,20 +633,15 @@ export default function Aulas() {
                             <Check size={12} strokeWidth={3} />
                             Confirmar presen&ccedil;a
                           </button>
+                        ) : row.ja_validou && row.id_estado === 3 ? (
+                          <span className="text-xs text-brand-800 font-semibold bg-brand-100 px-2 py-1 rounded-lg">A aguardar a outra parte</span>
                         ) : prazoExpiradoTabela ? (
                           <span className="text-xs text-gray-400 font-medium">Prazo expirado</span>
                         ) : (
                           <span className="text-xs text-gray-300 font-['Sora']">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-4">
-                        <button
-                          onClick={() => setModalAula(row)}
-                          className="px-3.5 py-1.5 rounded-lg bg-brand-200 text-brand-800 text-xs font-bold hover:bg-brand-800 hover:text-white transition-colors whitespace-nowrap"
-                        >
-                          Ver mais
-                        </button>
-                      </td>
+
                     </tr>
                   )
                 })
@@ -644,7 +683,7 @@ export default function Aulas() {
                 className="flex items-center gap-2 px-4 py-2 bg-brand-800 text-white rounded-xl text-sm font-bold hover:bg-brand-900 transition-colors shadow-sm"
               >
                 <Plus size={15} />
-                Nova Disponibilidade 
+                Nova Disponibilidade
               </button>
             </div>
             <div className="rounded-2xl border border-neutral-600/20 overflow-hidden shadow-sm bg-white">
