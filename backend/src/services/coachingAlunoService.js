@@ -303,6 +303,22 @@ async function solicitarMarcacao(id_aluno, dados) {
   const diaSemana = new Date(Date.UTC(ano, mes - 1, dia)).getUTCDay();
   // Normaliza a data para T00:00:00.000Z (mesmo formato que as disponibilidades guardadas)
   const dataRealizarDate = new Date(`${data_a_realizar.split('T')[0]}T00:00:00.000Z`);
+
+  // ── Validação Extra: Antecedência mínima de 30 minutos para marcações no próprio dia
+  const [hora, minuto, segundo = 0] = hora_inicio.split(':').map(Number);
+  const dataHoraMarcacao = new Date(ano, mes - 1, dia, hora, minuto, segundo);
+  const agora = new Date();
+
+  if (
+    dataHoraMarcacao.getFullYear() === agora.getFullYear() &&
+    dataHoraMarcacao.getMonth() === agora.getMonth() &&
+    dataHoraMarcacao.getDate() === agora.getDate()
+  ) {
+    const diferencaMinutos = (dataHoraMarcacao.getTime() - agora.getTime()) / (1000 * 60);
+    if (diferencaMinutos < 30) {
+      throw new Error("Para marcações no próprio dia, o horário de início deve ter pelo menos 30 minutos de antecedência em relação à hora atual.");
+    }
+  }
   const disponibilidadeValida = await prisma.disponibilidade.findFirst({
     where: {
       id_docente,

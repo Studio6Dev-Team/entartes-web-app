@@ -110,8 +110,8 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
     api.get(`/coaching/disponibilidades/consultar?${params}`)
       .then(r => {
         const disponibilidadesCompletas = Array.isArray(r) ? r : r.data || []
-        // Filtrar apenas os blocos cortados que pertencem a este docente
-        const blocosDocente = disponibilidadesCompletas.filter(b => b.id_docente === docenteSel.id_docente)
+        // Filtrar apenas os blocos cortados que pertencem a esta disponibilidade específica
+        const blocosDocente = disponibilidadesCompletas.filter(b => b.id_disponibilidade === slotSel.id_disponibilidade)
         setBlocosReais(blocosDocente)
       })
       .catch(() => setErro('Não foi possível consultar os horários livres para este dia.'))
@@ -190,7 +190,21 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
         cursor.setMinutes(cursor.getMinutes() + 30)
       }
     }
-    return Array.from(horas).sort()
+    let horasArray = Array.from(horas).sort()
+    
+    // Filtrar as horas que já passaram ou que estão a menos de 30 mins (se for o dia de hoje)
+    const hojeLocal = formatLocalYYYYMMDD(new Date())
+    if (data === hojeLocal) {
+      const agora = new Date()
+      horasArray = horasArray.filter(h => {
+        const [hh, mm, ss] = h.split(':').map(Number)
+        const slotDate = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), hh, mm, ss || 0)
+        const diffMinutos = (slotDate.getTime() - agora.getTime()) / 60000
+        return diffMinutos >= 30
+      })
+    }
+
+    return horasArray
   })()
 
   // Carregar colegas se for em grupo
