@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { X, ChevronRight, ChevronLeft, Music, User, CalendarDays, Clock, Check, Loader2, AlertCircle, Search } from 'lucide-react'
 import { api } from '../services/api'
 import { formatDate, formatTime } from '../utils/dateUtils'
@@ -77,10 +77,7 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
         }
         setModalidades(mods)
       })
-      .catch((err) => {
-              console.error('Erro ao carregar modalidades:', err);
-              setErro(err.response?.data?.details || 'Não foi possível carregar as modalidades.');
-            })      
+      .catch(() => setErro('Não foi possível carregar as modalidades.'))
       .finally(() => setLoadingMod(false))
   }, [initialSlot])
 
@@ -96,27 +93,6 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
       .catch(() => setErro('Não foi possível consultar as disponibilidades.'))
       .finally(() => setLoadingSlots(false))
   }, [step, modalidadeSel])
-
-  // Passo 3: carregar blocos de tempo livres REAIS para a data selecionada
-  const [blocosReais, setBlocosReais] = useState([])
-  const [loadingBlocos, setLoadingBlocos] = useState(false)
-
-  useEffect(() => {
-    if (step !== 3 || !data || !modalidadeSel || !docenteSel) return
-    setLoadingBlocos(true)
-    setBlocosReais([])
-
-    const params = new URLSearchParams({ id_modalidade: modalidadeSel.id_modalidade, data })
-    api.get(`/coaching/disponibilidades/consultar?${params}`)
-      .then(r => {
-        const disponibilidadesCompletas = Array.isArray(r) ? r : r.data || []
-        // Filtrar apenas os blocos cortados que pertencem a este docente
-        const blocosDocente = disponibilidadesCompletas.filter(b => b.id_docente === docenteSel.id_docente)
-        setBlocosReais(blocosDocente)
-      })
-      .catch(() => setErro('Não foi possível consultar os horários livres para este dia.'))
-      .finally(() => setLoadingBlocos(false))
-  }, [step, data, modalidadeSel, docenteSel])
 
   const DIAS = ['Domingo', 'Segunda-Feira', 'Terça-Feira', 'Quarta-Feira', 'Quinta-Feira', 'Sexta-Feira', 'Sábado']
 
@@ -165,45 +141,36 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
     return true // dia_semana é sempre futuro
   })
 
-  // Limite de horário permitido
-  const HORA_MIN = '08:30'
-  const HORA_MAX = '21:30'
-
-  // Calcular horas possíveis dentro do slot do docente selecionado, filtradas pelo horário permitido
+  // Calcular horas possíveis dentro do slot do docente selecionado
   const horasPossiveis = (() => {
-    if (!blocosReais || blocosReais.length === 0 || !duracao) return []
-      const parse = (s) => {
+    if (!slotSel || !duracao) return []
+    const parse = (s) => {
       if (!s) return null
       const d = new Date(s)
       return isNaN(d) ? null : d
     }
-    const horas = new Set()
-    
-    for (const bloco of blocosReais) {
-      const inicio = parse(bloco.hora_inicio)
-      const fim = parse(bloco.hora_fim)
-      if (!inicio || !fim) continue
-      
-      const cursor = new Date(inicio)
-      while (new Date(cursor.getTime() + duracao * 60000) <= fim) {
-        horas.add(cursor.toISOString().substring(11, 19)) // "HH:MM:SS"
-        cursor.setMinutes(cursor.getMinutes() + 30)
-      }
+    const inicio = parse(slotSel.hora_inicio)
+    const fim = parse(slotSel.hora_fim)
+    if (!inicio || !fim) return []
+    const horas = []
+    const cursor = new Date(inicio)
+    while (new Date(cursor.getTime() + duracao * 60000) <= fim) {
+      horas.push(cursor.toISOString().substring(11, 19)) // "HH:MM:SS"
+      cursor.setMinutes(cursor.getMinutes() + 30)
     }
-    return Array.from(horas).sort()
+    return horas
   })()
 
   // Carregar colegas se for em grupo
   useEffect(() => {
-    if (step === 3 && numAlunos > 1 && modalidadeSel) {
+    if (step === 3 && numAlunos > 1 && colegas.length === 0) {
       setLoadingColegas(true)
-      const params = new URLSearchParams({ id_modalidade: modalidadeSel.id_modalidade })
-      api.get(`/coaching/colegas?${params}`)
+      api.get('/coaching/colegas')
         .then(r => setColegas(Array.isArray(r) ? r : r.data || []))
         .catch(() => setErro('Não foi possível carregar a lista de colegas.'))
         .finally(() => setLoadingColegas(false))
     }
-  }, [step, numAlunos, modalidadeSel])
+  }, [step, numAlunos])
 
   const toggleColega = (id) => {
     setColegasSel(prev => {
@@ -491,14 +458,9 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
               {/* Hora de início */}
               <div>
                 <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5">Hora de Início</label>
-                {loadingBlocos ? (
-                  <div className="flex justify-center py-6">
-                    <Loader2 size={24} className="text-brand-800 animate-spin" />
-                  </div>
-                ) : horasPossiveis.length === 0 ? (
-                  <div className="text-center py-3 text-xs bg-amber-50 border border-amber-200 rounded-xl px-4">
-                    <p className="text-amber-700 font-semibold">O tempo escolhido não cabe aqui</p>
-                    <p className="text-amber-600 mt-1">Não é possível encaixar {duracao} min neste slot. Escolhe uma duração menor.</p>
+                {horasPossiveis.length === 0 ? (
+                  <div className="text-center py-3 text-xs text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    Não é possível encaixar {duracao} min neste slot. Escolhe uma duração menor.
                   </div>
                 ) : (
                   <div className="grid grid-cols-4 gap-2">

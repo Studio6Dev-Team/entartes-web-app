@@ -38,11 +38,20 @@ const login = async (req, res) => {
  */
 const getMe = async (req, res) => {
     try {
-        const id = req.user.id || req.user.id_utilizador;
+        const id = req.user.id;
 
         const user = await userService.getUser({
             where: { id_utilizador: id },
-            omit: { password: true }
+            select: {
+                id_utilizador: true,
+                nome: true,
+                apelido: true,
+                email: true,
+                telemovel: true,
+                data_nascimento: true,
+                nif: true,
+                codigo_username: true,
+            }
         });
 
         if (!user) {

@@ -58,29 +58,11 @@ export default function NovaDisponibilidadeModal({ onClose, onSuccess, selectedD
     })
     const [saving, setSaving] = useState(false)
     const [erro, setErro] = useState('')
-    const [erroHoraInicio, setErroHoraInicio] = useState('')
-    const [erroHoraFim, setErroHoraFim] = useState('')
-
-    const HORA_MIN = '08:30'
-    const HORA_MAX = '21:30'
-
-    function validarHora(valor, isInicio) {
-        if (!valor) return ''
-        if (valor < HORA_MIN || valor > HORA_MAX)
-            return `Fora do horário permitido (${HORA_MIN}–${HORA_MAX})`
-        if (!isInicio && horaInicio && valor <= horaInicio)
-            return 'Deve ser posterior à hora de início'
-        return ''
-    }
 
     const isEdit = !!initialData
+
     const handleSave = async () => {
-        const eIni = validarHora(horaInicio, true)
-        const eFim = validarHora(horaFim, false)
-        setErroHoraInicio(eIni)
-        setErroHoraFim(eFim)
         if (!horaInicio || !horaFim) return setErro('Horários são obrigatórios.')
-        if (eIni || eFim) return setErro('Corrija os horários assinalados.')
         if (horaFim <= horaInicio) return setErro('A hora de fim tem de ser posterior à hora de início.')
         if (frequencia === 'unica') {
             if (!data) return setErro('Data é obrigatória.')
@@ -188,22 +170,10 @@ export default function NovaDisponibilidadeModal({ onClose, onSuccess, selectedD
                         <input
                             type="time"
                             value={horaInicio}
-                            onChange={e => {
-                                const v = e.target.value
-                                setHoraInicio(v)
-                                setErroHoraInicio(validarHora(v, true))
-                            }}
+                            onChange={e => setHoraInicio(e.target.value)}
                             placeholder="HH:mm"
-                            min="08:30"
-                            max="21:30"
-                            className={`${inputCls} ${erroHoraInicio ? 'border-red-500 focus:border-red-500' : ''}`}
+                            className={inputCls}
                         />
-                        {erroHoraInicio && (
-                            <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 whitespace-nowrap">
-                                <span className="inline-block w-3 h-3 rounded-full bg-red-500 text-white text-[8px] flex items-center justify-center font-bold">!</span>
-                                {erroHoraInicio}
-                            </p>
-                        )}
                     </Field>
 
                     {/* Hora de fim */}
@@ -211,22 +181,10 @@ export default function NovaDisponibilidadeModal({ onClose, onSuccess, selectedD
                         <input
                             type="time"
                             value={horaFim}
-                            onChange={e => {
-                                const v = e.target.value
-                                setHoraFim(v)
-                                setErroHoraFim(validarHora(v, false))
-                            }}
+                            onChange={e => setHoraFim(e.target.value)}
                             placeholder="HH:mm"
-                            min="08:30"
-                            max="21:30"
-                            className={`${inputCls} ${erroHoraFim ? 'border-red-500 focus:border-red-500' : ''}`}
+                            className={inputCls}
                         />
-                        {erroHoraFim && (
-                            <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 whitespace-nowrap">
-                                <span className="inline-block w-3 h-3 rounded-full bg-red-500 text-white text-[8px] flex items-center justify-center font-bold">!</span>
-                                {erroHoraFim}
-                            </p>
-                        )}
                     </Field>
                 </div>
 

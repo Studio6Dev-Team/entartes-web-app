@@ -1,5 +1,5 @@
-
-const prisma = require('../prismaClient');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 /**
  * Lista todas as salas ordenadas por nome

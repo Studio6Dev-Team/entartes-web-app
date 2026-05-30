@@ -22,11 +22,8 @@ export default {
           900: '#00504E',
           800: '#006A68',
           500: '#CCE8E6',
-          300: '#d1fae5',
-          200: '#cce8e6',
-          100: '#FFFFFF',
+          200: '#CCE8E6',
           50: '#F4FBF9',
-          // f0faf9
         },
         neutral: {
           900: '#161D1C',
@@ -41,11 +38,10 @@ export default {
           50: '#EFF5F4',
         },
         feedback: {
-          success: { DEFAULT: '#049A59', dark: '#0A7659', clean: '#d1fae5' },
+          success: { DEFAULT: '#049A59', dark: '#0A7659' },
           error: { DEFAULT: '#BA1A1A', dark: '#93000A', light: '#FFDAD6' },
           info: { DEFAULT: '#324863', light: '#D2E4FF' },
-          warning: { DEFAULT: '#FF9500', light: '#FFF3E0' },
-          pendente: { DEFAULT: '#fcd35d', pendenteLight: '#fef3ca', textPendente: '#b3541a' }
+          warning: { DEFAULT: '#FF9500', light: '#FFF3E0' }
         }
       }
     },
