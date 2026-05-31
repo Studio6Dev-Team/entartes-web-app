@@ -554,6 +554,7 @@ export default function EventDetailsView() {
                                 <div>
                                     <h2 className="text-xl font-bold text-neutral-800">{selectedGroup.nome}</h2>
                                     <p className="text-sm text-neutral-600">{(selectedGroup.aluno_grupo?.length || 0) + (selectedGroup.docente_grupo?.length || 0)} Membros no grupo</p>
+                                    {isMemberOfSelectedGroup && selectedGroup.descricao && <p className="text-sm text-neutral-500 mt-1 italic">{selectedGroup.descricao}</p>}
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -605,7 +606,7 @@ export default function EventDetailsView() {
                                         <p className="text-center text-neutral-600 font-medium px-6">Os anúncios deste grupo são exclusivos para os seus membros.</p>
                                     </div>
                                 ) : groupAnnouncements.length === 0 ? (
-                                    <p className="text-center text-neutral-600 italic py-8">Nenhum aviso restrito circulou neste grupo.</p>
+                                    <p className="text-center text-neutral-600 italic py-8">Ainda não há anúncios publicados neste grupo.</p>
                                 ) : (
                                     groupAnnouncements.map((anuncio, idx) => {
                                         const isEditing = editingAnuncio?.id_anuncio === anuncio.id_anuncio && editingAnuncio?.isGroupContext
