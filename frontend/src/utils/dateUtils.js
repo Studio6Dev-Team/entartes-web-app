@@ -113,6 +113,24 @@ export function formatDateForInput(raw) {
 }
 
 /**
+ * Convert a duration in minutes to a human-readable string.
+ * < 60 min → "X min" | < 1 day → "Xh" or "Xh Ymin" | >= 1 day → "X dia(s) ..."
+ */
+export function formatDuration(minutes) {
+    if (!minutes || Number(minutes) <= 0) return '—'
+    const min = Number(minutes)
+    if (min < 60) return `${min} min`
+    const days = Math.floor(min / 1440)
+    const hours = Math.floor((min % 1440) / 60)
+    const remainingMin = min % 60
+    const parts = []
+    if (days > 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`)
+    if (hours > 0) parts.push(`${hours}h`)
+    if (remainingMin > 0) parts.push(`${remainingMin} min`)
+    return parts.join(' ')
+}
+
+/**
  * Combines a date (YYYY-MM-DD) and a time (HH:MM) into a UTC ISO string
  * while preserving the "wall-clock" time (no timezone shift).
  */

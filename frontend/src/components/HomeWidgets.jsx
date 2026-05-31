@@ -7,9 +7,15 @@ import { authService } from '../services/authService'
 import { formatDate, formatTime } from '../utils/dateUtils'
 export { formatDate, formatTime }
 export function formatDuration(min) {
-  if (!min) return '—'
-  const h = Math.floor(min / 60), m = min % 60
-  return h > 0 ? (m > 0 ? `${h}h ${m}min` : `${h}h`) : `${m} min`
+  if (!min || min <= 0) return '—'
+  const days = Math.floor(min / 1440)
+  const h = Math.floor((min % 1440) / 60)
+  const m = min % 60
+  const parts = []
+  if (days > 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`)
+  if (h > 0) parts.push(`${h}h`)
+  if (m > 0) parts.push(`${m} min`)
+  return parts.join(' ')
 }
 export function timeRemaining(dateRaw) {
   if (!dateRaw) return null
@@ -515,7 +521,7 @@ export function SalasDoDiaWidget({ onItemClick }) {
                 modalidade: c.modalidade || 'Coaching',
                 data: formatDate(c.data),
                 hora: formatTime(c.hora_inicio),
-                duracao: `${c.duracao_minutos || 60} min`,
+                duracao: formatDuration(c.duracao_minutos || 60),
                 tipo_aula: (c.numero_alunos_pretendidos > 1) ? 'Grupo' : 'Individual',
                 sala: sala.nome,
                 docente: c.docente || '—',

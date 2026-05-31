@@ -13,10 +13,15 @@ import { authService } from '../services/authService'
 export { formatDate, formatTime }
 
 export function formatDuration(min) {
-    if (!min) return '—'
-    const h = Math.floor(min / 60)
+    if (!min || min <= 0) return '—'
+    const days = Math.floor(min / 1440)
+    const h = Math.floor((min % 1440) / 60)
     const m = min % 60
-    return h > 0 ? (m > 0 ? `${h}h ${m}min` : `${h}h`) : `${m} min`
+    const parts = []
+    if (days > 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`)
+    if (h > 0) parts.push(`${h}h`)
+    if (m > 0) parts.push(`${m} min`)
+    return parts.join(' ')
 }
 
 // ─── Shared Primitives ────────────────────────────────────────────────────────

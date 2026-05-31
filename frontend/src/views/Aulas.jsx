@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { formatDate, formatTime, parseDate, parseDateTime } from '../utils/dateUtils'
+import { formatDate, formatTime, parseDate, parseDateTime, formatDuration } from '../utils/dateUtils'
 import { useLocation } from 'react-router-dom'
 import {
   Clock, CheckCircle2,
@@ -122,7 +122,7 @@ export default function Aulas() {
           modalidade: typeof m.modalidade === 'object' ? m.modalidade.nome : (m.modalidade || '—'),
           data: formatDate(m.data),
           hora: formatTime(m.hora_inicio),
-          duracao: `${m.duracao_minutos} min`,
+          duracao: formatDuration(m.duracao_minutos),
           tipo_aula: m.numero_alunos_pretendidos > 1 ? 'Grupo' : 'Individual',
           sala: typeof m.sala === 'object' ? m.sala.nome : (m.sala || m.sala_atual || 'Por atribuir'),
           docente: role === 2

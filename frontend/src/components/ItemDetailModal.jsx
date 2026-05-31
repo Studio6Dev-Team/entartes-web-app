@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { X, CalendarDays, Clock, MapPin, User, Music, BookOpen, Trash2, Pencil, DoorOpen, AlertCircle } from 'lucide-react'
-import { parseDate, addMinutesToTime, formatTime } from '../utils/dateUtils'
+import { parseDate, addMinutesToTime, formatTime, formatDuration } from '../utils/dateUtils'
 
 // Cores de exemplo (podem ser passadas via props ou mantidas como padrão)
 const STATUS_COLOR = {
@@ -185,7 +185,7 @@ export default function ItemDetailModal({
                             <InfoItem
                                 icon={Clock}
                                 label={isEvent ? "Duração Prevista" : "Duração"}
-                                value={item.duracao || `${item.duracao_minutos} min`}
+                                value={item.duracao_minutos ? formatDuration(item.duracao_minutos) : (item.duracao || '—')}
                             />
                         )}
                         {(item.sala || item.estudio) && <InfoItem icon={MapPin} label="Local" value={item.sala || item.estudio} />}
