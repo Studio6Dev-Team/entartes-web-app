@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Clock, User, Check, X, RefreshCw, ChevronRight, CalendarClock } from 'lucide-react'
 import { api } from '../services/api'
-import { authService } from '../services/authService'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 import { formatDate, formatTime } from '../utils/dateUtils'
@@ -251,9 +250,8 @@ export function ConfirmedCard({ aula, onOpen, role }) {
 }
 
 export function RequisicaoCard({ item, onAccept, onReject, loading, onVerPerfil }) {
-  const role = authService.getUser()?.role ?? 3
   return (
-    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex relative min-w-[340px] justify-between">
+    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex flex-col sm:flex-row relative w-full sm:min-w-[340px] justify-between gap-4 hover:scale-[1.01] hover:shadow-md transition-all duration-300 group">
       <div className="flex-1 flex flex-col gap-1.5">
         <p className="text-sm"><span className="text-neutral-500 font-medium">Modalidade: </span>
           <span className="text-neutral-800 font-semibold">{item.modalidade}</span></p>
@@ -264,43 +262,35 @@ export function RequisicaoCard({ item, onAccept, onReject, loading, onVerPerfil 
         <p className="text-sm"><span className="text-neutral-500 font-medium">Hora início: </span>
           <span className="text-neutral-800 font-semibold">{item.hora}</span></p>
         <p className="text-sm"><span className="text-neutral-500 font-medium">Tipo: </span>
-          <span className="text-neutral-800 font-semibold">{item.tipo || 'Individual'}</span></p>
-
+          <span className="text-neutral-800 font-semibold">Individual</span></p>
+        {item.alunos?.length > 0 && (
+          <button onClick={() => onVerPerfil(item.alunos[0])}
+            className="flex items-center gap-2 mt-1 bg-neutral-100 rounded-lg px-2.5 py-1.5 w-fit
+              hover:bg-neutral-200 transition-colors">
+            <div className="w-6 h-6 rounded-full bg-brand-800 flex items-center justify-center">
+              <User size={13} className="text-white" />
+            </div>
+            <span className="text-xs font-semibold text-neutral-800">{String(item.alunos[0] || '—')}</span>
+            <ChevronRight size={12} className="text-neutral-500" />
+          </button>
+        )}
         <div className="flex items-center gap-1.5 mt-1">
           <Clock size={14} className="text-amber-600" />
-          <span className="text-xs font-semibold text-amber-700">{item.tempoRestante || 'Nas próximas 48h'}</span>
+          <span className="text-xs font-semibold text-amber-700">Nas próximas 48h</span>
         </div>
       </div>
-
-      <div className="flex flex-col items-center justify-between ml-4 gap-2">
-        <div className="flex flex-col items-center gap-1 text-center my-auto">
-          <div className="w-12 h-12 rounded-full bg-brand-500 flex items-center justify-center border-2 border-brand-800">
-            <User size={24} className="text-brand-800" />
-          </div>
-          <span className="text-neutral-500 text-xs text-center leading-tight">
-            {role === 2 ? 'Aluno(s)' : 'Docente'}<br />
-            <span className="font-bold text-neutral-800 flex flex-col items-center text-sm mt-0.5">
-              {(role === 3 ? String(item.alunos || '—') : String(item.docente || '—'))
-                .split(',')
-                .map((n, i) => <span key={i}>{n.trim()}</span>)
-              }
-            </span>
-          </span>
-        </div>
-
+      <div className="flex flex-col items-end justify-end gap-2">
         {loading === item.id
           ? <RefreshCw size={18} className="text-brand-800 animate-spin" />
           : <div className="flex gap-2">
             <button onClick={() => onReject(item.id)}
-              className="w-14 h-14 bg-feedback-error border border-feedback-error-dark rounded-full flex items-center justify-center hover:opacity-90 transition-opacity">
+              className="w-12 h-12 bg-feedback-error border border-feedback-error-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity">
               <X size={22} strokeWidth={3} className="text-white" />
             </button>
-            {onAccept && (
-              <button onClick={() => onAccept(item.id)}
-                className="w-14 h-14 bg-feedback-success border border-feedback-success-dark rounded-full flex items-center justify-center hover:opacity-90 transition-opacity">
-                <Check size={22} strokeWidth={3} className="text-white" />
-              </button>
-            )}
+            <button onClick={() => onAccept(item.id)}
+              className="w-12 h-12 bg-feedback-success border border-feedback-success-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity">
+              <Check size={22} strokeWidth={3} className="text-white" />
+            </button>
           </div>
         }
       </div>
@@ -310,7 +300,7 @@ export function RequisicaoCard({ item, onAccept, onReject, loading, onVerPerfil 
 
 export function PresencaDocenteCard({ item, onConfirm, onReject, loading }) {
   return (
-    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex relative min-w-[340px]">
+    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex flex-col sm:flex-row relative w-full sm:min-w-[340px] gap-4">
       <div className="flex-1 flex flex-col gap-1.5">
         <p className="text-sm"><span className="text-neutral-500 font-medium">Modalidade: </span>
           <span className="text-neutral-800 font-semibold">{item.modalidade}</span></p>
@@ -324,7 +314,7 @@ export function PresencaDocenteCard({ item, onConfirm, onReject, loading }) {
           <span className="text-neutral-800 font-semibold">Individual</span></p>
         <div className="flex items-center gap-1.5 mt-1">
           <Clock size={16} className="text-amber-600" />
-          <span className="text-xs font-semibold text-amber-700">{item.tempoRestante || 'A expirar nas próximas 48h'}</span>
+          <span className="text-xs font-semibold text-amber-700">A expirar nas próximas 48h</span>
         </div>
       </div>
       <div className="flex flex-col items-end justify-end gap-2">
@@ -332,12 +322,12 @@ export function PresencaDocenteCard({ item, onConfirm, onReject, loading }) {
           ? <RefreshCw size={18} className="text-brand-800 animate-spin" />
           : <div className="flex gap-2">
             <button onClick={() => onReject(item.id)}
-              className="w-14 h-14 bg-feedback-error border border-feedback-error-dark rounded-full flex items-center justify-center hover:opacity-90 transition-opacity">
-              <X size={26} strokeWidth={3} className="text-white" />
+              className="w-12 h-12 bg-feedback-error border border-feedback-error-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity">
+              <X size={22} strokeWidth={3} className="text-white" />
             </button>
             <button onClick={() => onConfirm(item.id)}
-              className="w-14 h-14 bg-feedback-success border border-feedback-success-dark rounded-full flex items-center justify-center hover:opacity-90 transition-opacity">
-              <Check size={26} strokeWidth={3} className="text-white" />
+              className="w-12 h-12 bg-feedback-success border border-feedback-success-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity">
+              <Check size={22} strokeWidth={3} className="text-white" />
             </button>
           </div>
         }
@@ -375,8 +365,8 @@ export function PerfilModal({ aluno, onClose }) {
             {aluno.codigo_username}</div>}
         </div>
         <div className="px-6 pb-5">
-          <button onClick={onClose} className="w-full py-2.5 rounded-xl bg-red-600 text-white
-            font-semibold text-sm hover:bg-red-700 transition-colors">Fechar</button>
+          <button onClick={onClose} className="w-full py-2.5 rounded-xl bg-brand-800 text-white
+            font-semibold text-sm hover:bg-brand-900 transition-colors">Fechar</button>
         </div>
       </div>
     </div>
@@ -400,7 +390,7 @@ export function SectionHeader({ icon: Icon, title, action, onAction }) {
 export function ScrollRow({ children }) {
   return (
     <div className="w-full overflow-x-auto pb-2 hide-scrollbar">
-      <div className="grid grid-cols-3 gap-4 w-full">{children}</div>
+      <div className="flex flex-nowrap md:grid md:grid-cols-3 gap-4 w-max md:w-full">{children}</div>
     </div>
   )
 }
@@ -409,7 +399,7 @@ export function RoomOccupancyWidget({ data }) {
   if (!data || data.length === 0) return <div className="text-xs text-gray-400 italic">Sem dados de ocupação.</div>
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {data.map(sala => (
         <div key={sala.id_sala} className="bg-white border border-brand-800/10 rounded-xl p-3 shadow-sm">
           <div className="flex items-center justify-between mb-2">

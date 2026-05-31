@@ -114,7 +114,7 @@ export default function EditEventPanel({ onClose, onSuccess, initialEvent }) {
                     />
                 </div>
 
-                <div className="relative grid grid-cols-2 gap-4">
+                <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs text-neutral-600 font-semibold mb-1 block">Data</label>
                         <input
@@ -133,7 +133,7 @@ export default function EditEventPanel({ onClose, onSuccess, initialEvent }) {
                     </div>
                 </div>
 
-                <div className="relative grid grid-cols-2 gap-4">
+                <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs text-neutral-600 font-semibold mb-1 block">Duração (Horas)</label>
                         <input

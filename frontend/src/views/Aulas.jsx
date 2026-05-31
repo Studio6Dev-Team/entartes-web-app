@@ -603,7 +603,8 @@ export default function Aulas() {
 
         {/* Tabela */}
         <div className="rounded-2xl border border-neutral-600/20 overflow-hidden shadow-sm bg-white">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[1000px]">
             <thead>
               <tr className="bg-neutral-50 border-b-2 border-neutral-600/20">
                 {['Modalidade', 'Data', 'Hora', 'Duração', 'Tipo Aula', 'Sala', 'Estado', 'Ação'].map((col, i) => {
@@ -790,6 +791,7 @@ export default function Aulas() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {totalPages > 1 && (

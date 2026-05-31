@@ -202,7 +202,7 @@ export default function NovaDisponibilidadeModal({ onClose, onSuccess, selectedD
                 )}
 
                 {/* Form grid */}
-                <div className="grid grid-cols-2 gap-x-8 gap-y-7">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-7">
                     {/* Data only editable for "unica" */}
                     <Field label="Data">
                         <input
@@ -257,7 +257,7 @@ export default function NovaDisponibilidadeModal({ onClose, onSuccess, selectedD
                 </div>
 
                 {/* Frequência + day selector */}
-                <div className="mt-8 grid grid-cols-2 gap-8 items-start">
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-8 items-start">
                     <div>
                         <div className="flex items-center gap-2 mb-3">
                             <Clock size={17} className="text-brand-800" />
@@ -304,7 +304,7 @@ export default function NovaDisponibilidadeModal({ onClose, onSuccess, selectedD
                 </div>
 
                 {/* Actions */}
-                <div className="mt-10 grid grid-cols-2 gap-4">
+                <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <button
                         onClick={onClose}
                         className="py-3.5 rounded-2xl border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors"

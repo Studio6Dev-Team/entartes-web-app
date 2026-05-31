@@ -190,7 +190,7 @@ export default function AddEventMemberPanel({ eventId, onClose, onSuccess }) {
                 {selected.length > 0 && (
                     <div>
                         <p className="text-xs font-semibold text-neutral-600 mb-2 uppercase tracking-wider">Selecionados ({selected.length})</p>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {selected.map(u => (
                                 <div key={u.id_utilizador} className="flex items-center gap-2 bg-brand-200 rounded-xl px-3 py-2 border border-brand-800/20">
                                     <div className="w-8 h-8 rounded-full bg-brand-800 flex items-center justify-center text-white text-xs font-bold shrink-0">

@@ -15,21 +15,21 @@ import { ValidacaoModal, HistoricoModal } from '../components/EscolaModais'
 import {
   CalendarCheck, CalendarDays, Clock,
   RefreshCw, Check, X, Plus,
-  User, Star, Megaphone, AlertTriangle
+  User, Star, Megaphone
 } from 'lucide-react'
 
 import {
   StatCard,
   LiveClassCard, CoachingCard, ConfirmedCard, RequisicaoCard, PresencaDocenteCard,
   SalasDoDiaWidget,
-  PerfilModal, SectionHeader, Toast
+  PerfilModal, SectionHeader, ScrollRow, Toast
 } from '../components/HomeWidgets'
 import ItemDetailModal from '../components/ItemDetailModal'
 
 // ── Presence confirmation card (aluno confirma a SUA presença) ──
 function PresencaAlunoCard({ item, onConfirm, onReject, loading }) {
   return (
-    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex relative min-w-[340px]">
+    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex flex-col sm:flex-row relative w-full sm:min-w-[340px] gap-4 hover:scale-[1.01] hover:shadow-md transition-all duration-300 group">
       <div className="flex-1 flex flex-col gap-1.5">
         <p className="text-sm"><span className="text-neutral-500 font-medium">Modalidade: </span>
           <span className="text-neutral-800 font-semibold">{item.modalidade}</span></p>
@@ -49,12 +49,12 @@ function PresencaAlunoCard({ item, onConfirm, onReject, loading }) {
       <div className="flex flex-col items-end justify-end gap-2">
         <div className="flex gap-2">
           <button onClick={() => onReject(item.id)} disabled={loading === item.id}
-            className="w-14 h-14 bg-feedback-error border border-feedback-error-dark rounded-full flex items-center justify-center hover:opacity-90 transition-opacity">
-            <X size={26} strokeWidth={3} className="text-white" />
+            className="w-12 h-12 bg-feedback-error border border-feedback-error-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity">
+            <X size={22} strokeWidth={3} className="text-white" />
           </button>
           <button onClick={() => onConfirm(item.id)} disabled={loading === item.id}
-            className="w-14 h-14 bg-feedback-success border border-feedback-success-dark rounded-full flex items-center justify-center hover:opacity-90 transition-opacity">
-            <Check size={26} strokeWidth={3} className="text-white" />
+            className="w-12 h-12 bg-feedback-success border border-feedback-success-dark rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity">
+            <Check size={22} strokeWidth={3} className="text-white" />
           </button>
         </div>
       </div>
@@ -74,70 +74,6 @@ function ViewMoreCard({ onClick, label = "Ver mais" }) {
   )
 }
 
-export function ConfirmCancelModal({ isOpen, onClose, onConfirm, modalidade, data, hora, loading }) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 font-['Sora']" onClick={onClose}>
-      <div className="absolute inset-0 bg-neutral-900/40 backdrop-blur-sm transition-opacity" />
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
-        <div className="px-6 py-6 bg-gradient-to-br from-red-50 to-white border-b border-red-100 flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
-                <AlertTriangle size={16} />
-              </div>
-              <h3 className="font-bold text-xl text-neutral-800 tracking-tight">Cancelar Coaching</h3>
-            </div>
-            <p className="text-xs text-neutral-500 font-medium ml-10">
-              Tem a certeza de que deseja cancelar esta aula?
-            </p>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/50 hover:bg-neutral-100 flex items-center justify-center text-neutral-500 transition-colors">
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-150 mb-6 text-sm text-neutral-700 space-y-1.5">
-            <div>
-              <span className="text-neutral-500 font-medium">Modalidade: </span>
-              <span className="font-semibold text-neutral-800">{modalidade}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500 font-medium">Data: </span>
-              <span className="font-semibold text-neutral-800">{data}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500 font-medium">Hora: </span>
-              <span className="font-semibold text-neutral-800">{hora}</span>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold text-sm rounded-xl transition-colors border border-neutral-200"
-            >
-              Voltar
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={loading}
-              className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-1.5"
-            >
-              {loading ? <RefreshCw size={14} className="animate-spin" /> : 'Confirmar'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function Home() {
   const navigate = useNavigate()
   const user = authService.getUser()
@@ -149,7 +85,6 @@ export default function Home() {
 
   // Shared UI states
   const [loading, setLoading] = useState(true)
-  const [cancelModalItem, setCancelModalItem] = useState(null)
   const [loadingAction, setLoadingAction] = useState(null)
   const [toast, setToast] = useState(null)
   const [selectedEventId, setSelectedEventId] = useState(null)
@@ -274,35 +209,18 @@ export default function Home() {
 
         setOcupacaoSalas(ocupacao)
         const limite48h = new Date(now.getTime() + 48 * 60 * 60 * 1000)
-        const pendentes48h = pedPendentes
-          .filter(a => {
-            const dataAula = new Date(a._data_raw)
-            return dataAula >= now && dataAula <= limite48h
-          })
-          .map(a => {
-            const d = new Date(a._data_raw)
-            const diffMs = d.getTime() - now.getTime()
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-            let tempoRestante = 'A expirar nas próximas 48h'
-            if (diffMs > 0) {
-              if (diffHours > 0) {
-                tempoRestante = `${diffHours}h ${diffMins}m restantes`
-              } else {
-                tempoRestante = `${diffMins}m restantes`
-              }
-            }
-            return { ...a, tempoRestante }
-          })
+        const pendentes48h = pedPendentes.filter(a => {
+          const dataAula = new Date(a._data_raw)
+          return dataAula <= limite48h
+        })
         setCoachings48h(pendentes48h)
 
         const hoje = todas.filter(a => new Date(a._data_raw).toDateString() === now.toDateString())
         const confirmadasHoje = hoje.filter(a => a.id_estado === 3)
-        const concluidasHoje = hoje.filter(a => a.id_estado === 4)
         setStats({
           hoje: confirmadasHoje.length,
-          porValidar: pedPendentes.length,
-          concluidas: concluidasHoje.length
+          porValidar: pendentes48h.length,
+          concluidas: todas.filter(a => a.id_estado === 4).length
         })
         const sortAsc = (a, b) => new Date(a._data_raw) - new Date(b._data_raw);
 
@@ -314,70 +232,22 @@ export default function Home() {
         const raw = Array.isArray(res) ? res : (res?.data || [])
         const minhasAulas = raw.map(normalizeAula)
 
+        // Docente não vê Pedidos Pendentes de Coaching (a Coordenação trata da confirmação).
+        // Vê apenas Confirmadas e Concluídas.
         const sortAsc = (a, b) => new Date(a._data_raw) - new Date(b._data_raw);
-
-        // Coachings pendentes a expirar nas próximas 48h (iniciam no futuro, ≤ 48h)
-        const limite48h = new Date(now.getTime() + 48 * 60 * 60 * 1000)
-        const pendentesDocente = minhasAulas
-          .filter(a => {
-            if (a.id_estado !== 1) return false
-            const d = new Date(a._data_raw)
-            return d >= now && d <= limite48h
-          })
-          .map(a => {
-            const d = new Date(a._data_raw)
-            const diffMs = d.getTime() - now.getTime()
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-            let tempoRestante = 'A expirar nas próximas 48h'
-            if (diffMs > 0) {
-              if (diffHours > 0) {
-                tempoRestante = `${diffHours}h ${diffMins}m restantes`
-              } else {
-                tempoRestante = `${diffMins}m restantes`
-              }
-            }
-            return { ...a, tempoRestante }
-          })
-          .sort(sortAsc)
-
-        setCoachings48h(pendentesDocente)
-
         setAulasConfirmadas(minhasAulas.filter(a => {
           const d = new Date(a._data_raw)
           return a.id_estado === 3 && d >= now
         }).sort(sortAsc))
 
         // Aulas que o docente tem de "concluir" (validar presença pós-aula)
-        // Apenas mostramos se for nas últimas 48h após o fim da aula
-        setPresencasDocente(
-          minhasAulas
-            .filter(a => {
-              const d = new Date(a._data_raw)
-              const duracaoMinutos = Number(a.duracao_minutos) || 0
-              const dataFim = new Date(d.getTime() + duracaoMinutos * 60 * 1000)
-              const limite48h = new Date(dataFim.getTime() + 48 * 60 * 60 * 1000)
-              return a.id_estado === 3 && dataFim <= now && now <= limite48h && !a.ja_validou
-            })
-            .map(a => {
-              const d = new Date(a._data_raw)
-              const duracaoMinutos = Number(a.duracao_minutos) || 0
-              const dataFim = new Date(d.getTime() + duracaoMinutos * 60 * 1000)
-              const limite48h = new Date(dataFim.getTime() + 48 * 60 * 60 * 1000)
-              const diffMs = limite48h.getTime() - now.getTime()
-              const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-              const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-              let tempoRestante = 'A expirar nas próximas 48h'
-              if (diffMs > 0) {
-                if (diffHours > 0) {
-                  tempoRestante = `${diffHours}h ${diffMins}m restantes`
-                } else {
-                  tempoRestante = `${diffMins}m restantes`
-                }
-              }
-              return { ...a, tempoRestante }
-            })
-        )
+        // Só marcacoes CONFIRMADA mas no passado (aulas dadas recentement). Ou seja, < now
+        // Apenas mostramos se for nas últimas 48h
+        const limit48h = new Date(now.getTime() - 48 * 60 * 60 * 1000)
+        setPresencasDocente(minhasAulas.filter(a => {
+          const d = new Date(a._data_raw)
+          return a.id_estado === 3 && d < now && d >= limit48h && !a.ja_validou
+        }))
 
       } else if (isAluno) {
         const res = await coachingService.listarMeusPedidos().catch(() => [])
@@ -395,35 +265,12 @@ export default function Home() {
         }).sort(sortAsc))
 
         // Aulas dadas, à espera da validação dupla (CONFIRMADAS no passado)
-        // Apenas mostramos se for nas últimas 48h após o fim da aula
-        setPresencasAluno(
-          meusPedidos
-            .filter(a => {
-              const d = new Date(a._data_raw)
-              const duracaoMinutos = Number(a.duracao_minutos) || 0
-              const dataFim = new Date(d.getTime() + duracaoMinutos * 60 * 1000)
-              const limite48h = new Date(dataFim.getTime() + 48 * 60 * 60 * 1000)
-              return a.id_estado === 3 && dataFim <= now && now <= limite48h && !a.ja_validou
-            })
-            .map(a => {
-              const d = new Date(a._data_raw)
-              const duracaoMinutos = Number(a.duracao_minutos) || 0
-              const dataFim = new Date(d.getTime() + duracaoMinutos * 60 * 1000)
-              const limite48h = new Date(dataFim.getTime() + 48 * 60 * 60 * 1000)
-              const diffMs = limite48h.getTime() - now.getTime()
-              const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-              const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-              let tempoRestante = 'Nas próximas 48h'
-              if (diffMs > 0) {
-                if (diffHours > 0) {
-                  tempoRestante = `${diffHours}h ${diffMins}m restantes`
-                } else {
-                  tempoRestante = `${diffMins}m restantes`
-                }
-              }
-              return { ...a, tempoRestante }
-            })
-        )
+        // Apenas mostramos se for nas últimas 48h
+        const limit48h = new Date(now.getTime() - 48 * 60 * 60 * 1000)
+        setPresencasAluno(meusPedidos.filter(a => {
+          const d = new Date(a._data_raw)
+          return a.id_estado === 3 && d < now && d >= limit48h && !a.ja_validou
+        }))
       }
 
     } catch (e) {
@@ -486,19 +333,6 @@ export default function Home() {
       loadData()
     } catch (err) { showToast(err.response?.data?.message || 'Erro ao rejeitar.', 'error') }
     finally { setLoadingAction(null) }
-  }
-
-  async function handleCancelarCoachingDocente(id_marcacao) {
-    setLoadingAction(id_marcacao)
-    try {
-      await api.post(`/coaching/cancelar-marcacao/${id_marcacao}`, { motivo: 'Cancelado via Dashboard (Docente)' })
-      showToast('Coaching cancelado com sucesso.', 'success')
-      loadData()
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Erro ao cancelar o coaching.', 'error')
-    } finally {
-      setLoadingAction(null)
-    }
   }
 
   // ── Actions (Aluno) ──
@@ -621,13 +455,13 @@ export default function Home() {
             {coachings48h.length === 0 ? (
               <p className="text-sm text-neutral-600 italic">Sem coachings pendentes nas próximas 48h.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <ScrollRow>
                 {coachings48h.slice(0, 3).map(a => (
                   isAdmin
                     ? <CoachingCard key={a.id} aula={a} onConfirm={handleConfirmAdminDocente} onReject={handleRejectAdminDocente} loading={loadingAction} />
-                    : <RequisicaoCard key={a.id} item={a} onReject={() => setCancelModalItem(a)} loading={loadingAction} onVerPerfil={handleVerPerfil} />
+                    : <RequisicaoCard key={a.id} item={a} onAccept={handleConfirmAdminDocente} onReject={handleRejectAdminDocente} loading={loadingAction} onVerPerfil={handleVerPerfil} />
                 ))}
-              </div>
+              </ScrollRow>
             )}
           </section>
         )}
@@ -639,11 +473,11 @@ export default function Home() {
             {presencasDocente.length === 0 ? (
               <p className="text-sm text-gray-400 italic">Sem presenças a confirmar.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <ScrollRow>
                 {presencasDocente.slice(0, 3).map(item => (
                   <PresencaDocenteCard key={item.id} item={item} onConfirm={handleConfirmPresencaDocente} onReject={handleRejectDocente} loading={loadingAction} />
                 ))}
-              </div>
+              </ScrollRow>
             )}
           </section>
         )}
@@ -652,11 +486,11 @@ export default function Home() {
         {isAluno && presencasAluno.length > 0 && (
           <section>
             <SectionHeader icon={Clock} title="Presenças por confirmar" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ScrollRow>
               {presencasAluno.slice(0, 3).map(item => (
                 <PresencaAlunoCard key={item.id} item={item} onConfirm={handleConfirmarPresencaAluno} onReject={handleRecusarPresencaAluno} loading={loadingAction} />
               ))}
-            </div>
+            </ScrollRow>
           </section>
         )}
 
@@ -666,13 +500,13 @@ export default function Home() {
           {aulasConfirmadas.length === 0 ? (
             <p className="text-sm text-neutral-600 italic">Sem coachings confirmados.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ScrollRow>
               {aulasConfirmadas.slice(0, 3).map(a => (
                 (isAdmin || isDocente)
                   ? <ConfirmedCard key={a.id} aula={a} onOpen={() => setSelectedItem(a)} role={role} />
                   : <ClassCard key={a.id} item={a} statusType="confirmada" onOpen={() => setSelectedItem(a)} />
               ))}
-            </div>
+            </ScrollRow>
           )}
         </section>
 
@@ -680,11 +514,11 @@ export default function Home() {
         {isAluno && inscricoesAluno.length > 0 && (
           <section>
             <SectionHeader icon={CalendarCheck} title="Inscrições pendentes" action="Ver todas" onAction={() => navigate('/aulas')} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ScrollRow>
               {inscricoesAluno.slice(0, 3).map((item, idx) => (
                 <ClassCard key={item.id || idx} item={item} statusType="pendente" onOpen={() => setSelectedItem(item)} />
               ))}
-            </div>
+            </ScrollRow>
           </section>
         )}
 
@@ -776,26 +610,11 @@ export default function Home() {
       )}
 
       {showConcluidasModal && (
-        <HistoricoModal initialFiltro="4" onlyToday onClose={() => setShowConcluidasModal(false)} />
+        <HistoricoModal initialFiltro="4" onClose={() => setShowConcluidasModal(false)} />
       )}
 
       {showAulasHojeModal && (
-        <HistoricoModal initialFiltro="3" onlyToday onClose={() => setShowAulasHojeModal(false)} />
-      )}
-
-      {cancelModalItem && (
-        <ConfirmCancelModal
-          isOpen={!!cancelModalItem}
-          onClose={() => setCancelModalItem(null)}
-          onConfirm={async () => {
-            await handleCancelarCoachingDocente(cancelModalItem.id)
-            setCancelModalItem(null)
-          }}
-          modalidade={cancelModalItem.modalidade}
-          data={cancelModalItem.data}
-          hora={cancelModalItem.hora}
-          loading={loadingAction === cancelModalItem.id}
-        />
+        <HistoricoModal initialFiltro="3" onClose={() => setShowAulasHojeModal(false)} />
       )}
     </>
   )

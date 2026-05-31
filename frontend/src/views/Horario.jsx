@@ -137,26 +137,26 @@ const DateCellWrapper = ({ children, value, onAdd, currentMonth }) => {
 // ─── Custom Toolbar ──────────────────────────────────────────────────────────
 function CustomToolbar({ label, onNavigate, onView, view }) {
     return (
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5 px-8 pt-8">
-            <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-[#324B4A] w-[270px]">{label}</h2>
-                <div className="flex items-center gap-2 ml-2">
-                    <button onClick={() => onNavigate('PREV')} className="w-9 h-9 rounded-full border border-[#4a6362]/25 flex items-center justify-center hover:bg-[#EFF5F4] transition-colors">
-                        <ChevronLeft size={17} className="text-[#4A6362]" />
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5 px-4 md:px-8 pt-4 md:pt-8 w-full">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4 w-full md:w-auto">
+                <h2 className="text-xl md:text-2xl font-bold text-[#324B4A] min-w-[150px]">{label}</h2>
+                <div className="flex items-center gap-2">
+                    <button onClick={() => onNavigate('PREV')} className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-[#4a6362]/25 flex items-center justify-center hover:bg-[#EFF5F4] transition-colors">
+                        <ChevronLeft size={16} className="text-[#4A6362]" />
                     </button>
-                    <button onClick={() => onNavigate('TODAY')} className="px-4 py-1.5 rounded-lg border border-[#4a6362]/25 text-sm font-semibold text-[#4A6362] hover:bg-[#EFF5F4] transition-colors">
+                    <button onClick={() => onNavigate('TODAY')} className="px-3 md:px-4 py-1.5 rounded-lg border border-[#4a6362]/25 text-xs md:text-sm font-semibold text-[#4A6362] hover:bg-[#EFF5F4] transition-colors">
                         Hoje
                     </button>
-                    <button onClick={() => onNavigate('NEXT')} className="w-9 h-9 rounded-full border border-[#4a6362]/25 flex items-center justify-center hover:bg-[#EFF5F4] transition-colors">
-                        <ChevronRight size={17} className="text-[#4A6362]" />
+                    <button onClick={() => onNavigate('NEXT')} className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-[#4a6362]/25 flex items-center justify-center hover:bg-[#EFF5F4] transition-colors">
+                        <ChevronRight size={16} className="text-[#4A6362]" />
                     </button>
                 </div>
             </div>
-            <div className="flex items-center gap-2">
-                <div className="flex items-center border border-[#4a6362]/25 rounded-xl overflow-hidden">
+            <div className="flex items-center w-full md:w-auto mt-2 md:mt-0">
+                <div className="flex items-center border border-[#4a6362]/25 rounded-xl overflow-hidden w-full md:w-auto">
                     {['month', 'week'].map(mode => (
                         <button key={mode} onClick={() => onView(mode)}
-                            className={`px-4 py-2 text-sm font-semibold capitalize transition-colors
+                            className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold capitalize transition-colors
                                 ${view === mode ? 'bg-[#006A68] text-white' : 'text-[#4A6362] hover:bg-[#EFF5F4]'}`}>
                             {mode === 'month' ? 'Mensal' : 'Semanal'}
                         </button>

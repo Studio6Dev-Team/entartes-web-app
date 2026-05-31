@@ -2,21 +2,9 @@ import { Clock, CalendarCheck, CalendarDays, X, Check, Megaphone, User, Calendar
 import { formatDate } from '../utils/dateUtils'
 
 export function EventCard({ event, onOpen }) {
-  let cleanDescricao = event.descricao || ''
-  if (cleanDescricao.includes('---FAQS---')) {
-    const parts = cleanDescricao.split('---FAQS---')
-    cleanDescricao = parts[0].trim()
-  }
-  const words = cleanDescricao.split(/\s+/).filter(Boolean)
-  const isTruncated = words.length > 50
-  const displayDesc = isTruncated ? words.slice(0, 50).join(' ') + '...' : cleanDescricao
-
   return (
-    <div
-      onClick={onOpen}
-      className="bg-white rounded-xl border border-neutral-600/20 shadow-sm cursor-pointer hover:scale-[1.01] hover:shadow-md transition-all duration-300 p-6 flex flex-col gap-3 group"
-    >
-      <div className="flex items-start justify-between gap-2">
+    <div className="bg-white rounded-xl border border-neutral-600/20 shadow-sm hover:shadow-md transition-all p-6 flex flex-col gap-3 group w-full overflow-hidden">
+      <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-3 sm:gap-2">
         <h3 className="text-neutral-800 font-semibold text-lg leading-snug group-hover:text-brand-800 transition-colors">
           {event.nome}
         </h3>
@@ -27,15 +15,14 @@ export function EventCard({ event, onOpen }) {
         </span>
       </div>
 
-      {cleanDescricao && (
-        <p className="text-sm text-neutral-600 leading-relaxed font-sans line-clamp-3">
-          {displayDesc}
-        </p>
-      )}
-
-      <div className="flex items-center gap-1.5 text-sm text-neutral-600 font-medium w-full mt-auto">
+      <div className="flex items-center gap-1.5 text-sm text-neutral-600 font-medium w-full">
         <MapPin size={14} className="shrink-0" />
         <span className="truncate" title={event.local || 'Local a definir'}>{event.local || 'Local a definir'}</span>
+      </div>
+
+
+      <div className="mt-auto pt-4 border-t border-neutral-600/10 flex items-center justify-end">
+        <button onClick={onOpen} className="text-xs font-semibold text-brand-800 hover:underline">Ver detalhes</button>
       </div>
     </div>
   )
@@ -44,7 +31,7 @@ export function EventCard({ event, onOpen }) {
 // Cartão: Presenças a confirmar a expirar
 export function ActionCard({ item, onAccept, onReject }) {
   return (
-    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex relative min-w-[340px]">
+    <div className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex flex-col sm:flex-row relative w-full sm:min-w-[340px] gap-4">
       <div className="flex-1 flex flex-col gap-1.5">
         <p className="text-sm">
           <span className="text-neutral-500 font-medium">Modalidade: </span>
@@ -100,7 +87,7 @@ export function ClassCard({ item, statusType, onOpen }) {
   return (
     <div
       onClick={onOpen}
-      className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex flex-col justify-between min-w-[340px] cursor-pointer hover:scale-[1.01] hover:shadow-md transition-all duration-300 group">
+      className="bg-white border border-neutral-600/20 shadow-sm rounded-xl p-5 flex flex-col justify-between w-full sm:min-w-[340px] cursor-pointer hover:scale-[1.01] hover:shadow-md transition-all duration-300 group">
       <div className="flex justify-between items-start mb-4">
         <div className="flex flex-col gap-1 w-2/3">
           <p className="text-sm">
@@ -153,7 +140,7 @@ export function ClassCard({ item, statusType, onOpen }) {
 // Cartão: Eventos Rápidos
 export function EventDashCard({ item }) {
   return (
-    <div className="bg-brand-50 border border-brand-800 rounded-xl p-5 flex flex-col justify-between min-w-[340px] flex-1">
+    <div className="bg-brand-50 border border-brand-800 rounded-xl p-5 flex flex-col justify-between w-full sm:min-w-[340px] flex-1">
       <div>
         <div className="flex items-center gap-3 mb-4">
           <Megaphone size={28} className="text-brand-800" />

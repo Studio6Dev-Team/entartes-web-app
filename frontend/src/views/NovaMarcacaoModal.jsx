@@ -354,7 +354,7 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
               ) : modalidades.length === 0 ? (
                 <p className="text-gray-400 text-sm text-center py-6">Nenhuma modalidade disponível.</p>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {modalidades.map(m => (
                     <button
                       key={m.id_modalidade}
@@ -515,7 +515,7 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
                     <p className="text-amber-600 mt-1">Este horário não tem tempo suficiente para uma sessão de {duracao} min. Tenta escolher uma duração menor.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {horasPossiveis.map(h => (
                       <button
                         key={h}
@@ -565,7 +565,7 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
                             {colegasSel.length} / {numAlunos - 1}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {colegasSel.map(id => {
                             const u = colegas.find(c => c.id_utilizador === id)
                             if (!u) return null

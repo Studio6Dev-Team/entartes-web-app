@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Music, Plus, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, Pencil, Trash2, X, Check, AlertCircle } from 'lucide-react'
 import { modalidadeService } from '../services/modalidadeService'
@@ -149,7 +149,8 @@ export default function Modalidades() {
 
                 {/* Tabela */}
                 <div className="rounded-2xl border border-neutral-600/20 overflow-hidden shadow-sm bg-white">
-                    <table className="w-full text-sm">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm min-w-[600px]">
                         <thead>
                             <tr className="bg-neutral-50 border-b-2 border-neutral-600/20">
                                 {['Nome', ...(isAdmin ? ['Docentes', ''] : [])].map((col, i) => {
@@ -265,6 +266,7 @@ export default function Modalidades() {
                             )}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* Resumo */}

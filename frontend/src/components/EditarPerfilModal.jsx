@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
     X, User, Mail, Phone, Lock, Eye, EyeOff,
     Check, RefreshCw, AlertCircle, ShieldCheck, Calendar
@@ -322,7 +322,7 @@ export default function EditarPerfilModal({ onClose, onSuccess }) {
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Field label="Nome" icon={User} error={errors.nome}>
                                     <input
                                         value={form.nome}
@@ -352,7 +352,7 @@ export default function EditarPerfilModal({ onClose, onSuccess }) {
                                 />
                             </Field>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Field label="Telemóvel" icon={Phone} error={errors.telemovel}>
                                     <input
                                         value={form.telemovel}

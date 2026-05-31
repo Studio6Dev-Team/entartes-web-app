@@ -243,7 +243,7 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
                     </Field>
 
                     {/* Nome + Apelido */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Field label="Nome" error={errors.nome}>
                             <input
                                 type="text"
@@ -307,7 +307,7 @@ export default function NovoUtilizadorModal({ onClose, onSuccess, utilizador }) 
                     </Field>
 
                     {/* Telemóvel + NIF */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Field label="Telemóvel" error={errors.telemovel}>
                             <input
                                 type="text"

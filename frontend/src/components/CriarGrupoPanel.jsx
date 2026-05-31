@@ -246,7 +246,7 @@ export default function CriarGrupoPanel({ onClose, onSuccess, eventId, initialGr
                 {selected.length > 0 && (
                     <div>
                         <p className="text-xs font-semibold text-black mb-2">Membros selecionados ({selected.length})</p>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {selected.map(u => (
                                 <div key={u.id_utilizador} className="flex items-center gap-2 bg-neutral-300 rounded-xl px-3 py-2">
                                     <div className="w-9 h-9 rounded-full bg-brand-800 flex items-center justify-center text-white text-xs font-bold shrink-0">
