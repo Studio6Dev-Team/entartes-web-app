@@ -497,8 +497,8 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
                   </div>
                 ) : horasPossiveis.length === 0 ? (
                   <div className="text-center py-3 text-xs bg-amber-50 border border-amber-200 rounded-xl px-4">
-                    <p className="text-amber-700 font-semibold">O tempo escolhido não cabe aqui</p>
-                    <p className="text-amber-600 mt-1">Não é possível encaixar {duracao} min neste slot. Escolhe uma duração menor.</p>
+                    <p className="text-amber-700 font-semibold">Duração não disponível</p>
+                    <p className="text-amber-600 mt-1">Este horário não tem tempo suficiente para uma sessão de {duracao} min. Tenta escolher uma duração menor.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
@@ -625,7 +625,7 @@ export default function NovaMarcacaoModal({ onClose, onSuccess, initialSlot }) {
               </div>
               <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 flex items-start gap-2">
                 <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                O teu pedido ficará <strong className="ml-1">Pendente</strong> e será confirmado pela administração.
+                <span>O teu pedido ficará <strong>Pendente</strong> e será confirmado pela administração.</span>
               </div>
             </div>
           )}
