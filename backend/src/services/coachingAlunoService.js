@@ -76,7 +76,7 @@ async function consultarDisponibilidades(filtros = {}) {
       ...(data && {
         OR: [
           { data_especifica: new Date(data) },
-          { dia_semana: new Date(data).getDay() }, // 0=Dom, 1=Seg, …
+          { dia_semana: new Date(`${data.split('T')[0]}T00:00:00.000Z`).getUTCDay() }, // 0=Dom, 1=Seg, …
         ],
       }),
     },
@@ -99,7 +99,7 @@ async function consultarDisponibilidades(filtros = {}) {
   const slotsBrutos = await Promise.all(
     disponibilidades.map(async (disp) => {
       let blocosLivres = [{ start: new Date(disp.hora_inicio), end: new Date(disp.hora_fim) }];
-      
+
       if (data) {
         const dataRealizarDate = new Date(`${data.split('T')[0]}T00:00:00.000Z`);
         const [ano, mes, dia] = data.split('T')[0].split('-').map(Number);
@@ -152,7 +152,7 @@ async function consultarDisponibilidades(filtros = {}) {
               marcacao: { select: { hora_inicio: true, duracao_minutos: true } },
             },
           });
-          
+
           for (const ma of marcacoesAluno) {
             const mInicio = new Date(ma.marcacao.hora_inicio);
             const mFim = new Date(mInicio.getTime() + ma.marcacao.duracao_minutos * 60 * 1000);
@@ -162,7 +162,7 @@ async function consultarDisponibilidades(filtros = {}) {
 
         // Subtrair os intervalos ocupados dos blocos livres
         ocupados.sort((a, b) => a.start - b.start);
-        
+
         for (const occ of ocupados) {
           const novosBlocos = [];
           for (const bloco of blocosLivres) {
@@ -303,6 +303,23 @@ async function solicitarMarcacao(id_aluno, dados) {
   const diaSemana = new Date(Date.UTC(ano, mes - 1, dia)).getUTCDay();
   // Normaliza a data para T00:00:00.000Z (mesmo formato que as disponibilidades guardadas)
   const dataRealizarDate = new Date(`${data_a_realizar.split('T')[0]}T00:00:00.000Z`);
+
+  // ── Validação Extra: Antecedência mínima de 30 minutos para marcações no próprio dia
+  const [hora, minuto, segundo = 0] = hora_inicio.split(':').map(Number);
+  const dataHoraMarcacao = new Date(ano, mes - 1, dia, hora, minuto, segundo);
+  const agora = new Date();
+
+  if (
+    dataHoraMarcacao.getFullYear() === agora.getFullYear() &&
+    dataHoraMarcacao.getMonth() === agora.getMonth() &&
+    dataHoraMarcacao.getDate() === agora.getDate()
+  ) {
+    const diferencaMinutos = (dataHoraMarcacao.getTime() - agora.getTime()) / (1000 * 60);
+    if (diferencaMinutos < 30) {
+      throw new Error("Para marcações no próprio dia, o horário de início deve ter pelo menos 30 minutos de antecedência em relação à hora atual.");
+    }
+  }
+
   const disponibilidadeValida = await prisma.disponibilidade.findFirst({
     where: {
       id_docente,
@@ -761,9 +778,15 @@ async function validarConclusaoSessao(id_aluno, id_marcacao) {
 
     // Verifica prazo de 48 horas (RF-COA-04)
     const agora = new Date();
-    // Nota: usamos data_a_realizar + hora_inicio como referência temporal da aula
+    // Combinamos a data e hora de início para ter a referência exata da aula
     const dataHoraAula = new Date(marcacao.data_a_realizar);
-    if (agora - dataHoraAula > PRAZO_DUPLA_VALIDACAO_MS) {
+    if (marcacao.hora_inicio) {
+      const hr = new Date(marcacao.hora_inicio);
+      dataHoraAula.setUTCHours(hr.getUTCHours(), hr.getUTCMinutes(), 0, 0);
+    }
+    const duracaoMinutos = Number(marcacao.duracao_minutos) || 0;
+    const dataHoraFim = new Date(dataHoraAula.getTime() + duracaoMinutos * 60 * 1000);
+    if (agora - dataHoraFim > PRAZO_DUPLA_VALIDACAO_MS) {
       throw new Error('O prazo de 48 horas para validação da sessão já expirou.');
     }
 
