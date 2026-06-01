@@ -181,13 +181,31 @@ export default function ItemDetailModal({
                         ) : (
                             <InfoItem icon={Clock} label="Hora" value={item.hora || item.hora_inicio} />
                         )}
-                        {(item.duracao || item.duracao_minutos) && (
-                            <InfoItem
-                                icon={Clock}
-                                label={isEvent ? "Duração Prevista" : "Duração"}
-                                value={item.duracao || `${item.duracao_minutos} min`}
-                            />
-                        )}
+                        {(item.duracao || item.duracao_minutos) && (() => {
+                            const val = item.duracao_minutos || item.duracao;
+                            let durFormatada = val;
+                            const min = Number(val);
+                            if (!isNaN(min)) {
+                                const d = Math.floor(min / 1440);
+                                const remD = min % 1440;
+                                const h = Math.floor(remD / 60);
+                                const m = remD % 60;
+                                
+                                let parts = [];
+                                if (d > 0) parts.push(`${d} ${d === 1 ? 'dia' : 'dias'}`);
+                                if (h > 0) parts.push(`${h}h`);
+                                if (m > 0 || (d === 0 && h === 0)) parts.push(`${m} min`);
+                                
+                                durFormatada = parts.join(' ');
+                            }
+                            return (
+                                <InfoItem
+                                    icon={Clock}
+                                    label={isEvent ? "Duração Prevista" : "Duração"}
+                                    value={durFormatada}
+                                />
+                            );
+                        })()}
                         {(item.sala || item.estudio) && <InfoItem icon={MapPin} label="Local" value={item.sala || item.estudio} />}
                         {!isEvent && item.docente && (
                             <InfoItem
